@@ -1,7 +1,10 @@
 package org.asarkar.codinginterview
 
+import java.util.concurrent.ThreadLocalRandom
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
+import scala.util.Random
 
 package object numerics {
   /*
@@ -158,4 +161,65 @@ package object numerics {
    *
    * See https://github.com/asarkar/algorithms-design-analysis/blob/master/karatsuba/src/main/scala/org/asarkar/Karatsuba.scala
    */
+
+  /*
+   * The area of a circle is defined as πr^2. Estimate π to 3 decimal places using a Monte Carlo method.
+   * Hint: The basic equation of a circle is x2 + y2 = r2.
+   *
+   * ANSWER: Imagine a circle of radius 1 enclosed in a square. Each side of the square is of length 2 (equal to the
+   * diameter of the circle). Area of the circle C = πr^2 = π. Area of the square S is 2x2 = 4. If we take
+   * the ratio R of C and S, we get π/4. Therefore, π = 4R.
+   * Assuming the center (0,0) at the center of the circle, the lower left corner of the square is (-1,-1) and the
+   * upper right corner is (1,1). We randomly generate 2D points in this range; if the distance of a point from the
+   * center is less than 1, it is inside the circle, otherwise, it's outside.
+   * Experiments show that the number of iterations required is approximately 10 raised to the precision desired.
+   */
+  def pi(actual: Double, error: Double): Double = {
+    Iterator.iterate((0, 0, Double.MaxValue)) { case (numPointsInCircle, numTotalPoints, _) =>
+      val x = ThreadLocalRandom.current.nextDouble(-1d, 1.0001)
+      val y = ThreadLocalRandom.current.nextDouble(-1d, 1.0001)
+      val d = x * x + y * y
+      // points on the circumference are considered outside
+      val a = numPointsInCircle + (if (d < 1d) 1 else 0)
+      val b = numTotalPoints + 1
+      val currentVal = (4d * a) / b
+      val estimate = math.abs(currentVal - actual)
+      (numPointsInCircle + (if (d < 1d) 1 else 0), numTotalPoints + 1, estimate)
+    }
+      .dropWhile(_._3 > error)
+      .take(1)
+      .map { x =>
+        println(s"Calculated PI up to $error precision in ${x._2} iterations")
+        (4d * x._1) / x._2
+      }
+      .next()
+  }
+
+  /*
+   * Given a stream of elements too large to store in memory, pick a random element from the stream with uniform
+   * probability.
+   *
+   * ANSWER: We will prove that every element is has a 1/n probability to be chosen, where n is the number of elements
+   * seen so far.
+   * For n = 1, we pick the first element.
+   * After n iterations, the probability that the i-th element was chosen, and not replaced by any of the [i+1..n]
+   * elements is the product of the probabilities of choosing the i-th element, and not choosing any of the remaining
+   * elements (product since these probabilities are independent).
+   * 1/i + (1 - (1/i+1)) + (1 - (1/i+2)) + ... + (1 - 1/n)
+   * = 1/i + i/(i+1) + (i+1)/(i+2) + ... + (n-1)/n
+   * = 1/n
+   *
+   * c.f. https://en.wikipedia.org/wiki/Reservoir_sampling
+   * https://kapilddatascience.wordpress.com/2015/06/11/how-to-randomly-pick-k-elements-from-an-infinite-stream-with-equal-probability-a-k-a-reservoir-sampling/
+   */
+  def randomNumFromStream(numbers: Iterator[Int]): Iterator[Int] = {
+    numbers
+      .scanLeft((0, -1)) { case ((count, rand), x) =>
+        if (count == 0) (count + 1, x)
+        else if (new Random().nextInt(count) == count - 1) (count + 1, x)
+        else (count + 1, rand)
+      }
+      .drop(1)
+      .map(_._2)
+  }
 }

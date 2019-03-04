@@ -17,7 +17,7 @@ package object recursion {
    * subproblems are overlapping (notice the recurrence above, it looks very much like Fibonacci), we also memoize the
    * intermediate results to avoid recalculations.
    */
-  def numWays(msg: String): Int = {
+  def numWaysToDecode(msg: String): Int = {
     val dp = Array.fill[Int](msg.length + 1)(-1)
     val (lowest, highest) = (1, 26)
 

@@ -16,4 +16,15 @@ class NumericsSpec extends FlatSpec {
   it should "compute a large sum" in {
     largeSum("946483215", "64586") shouldBe "946547801"
   }
+
+  it should "compute PI up to 3 decimal places" in {
+    val actual = 3.141d
+    val error = 0.0001d
+    pi(actual, error) shouldBe actual +- error
+  }
+
+  it should "pick a random element from the stream" in {
+    randomNumFromStream((1 to 4).toIterator)
+      .foreach(println)
+  }
 }

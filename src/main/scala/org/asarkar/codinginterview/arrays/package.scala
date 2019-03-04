@@ -348,4 +348,70 @@ package object arrays {
 
     loop(0, 0)
   }
+
+  /*
+   * Given an array of integers, return a new array such that each element at index i of the new array is the product
+   * of all the numbers in the original array except the one at i. For example, if our input was [1, 2, 3, 4, 5], the
+   * expected output would be [120, 60, 40, 30, 24]. If our input was [3, 2, 1], the expected output would be [2, 3, 6].
+   *
+   * Follow-up: what if you can't use division?
+   *
+   * ANSWER: See https://github.com/asarkar/adm/blob/master/src/main/scala/org/asarkar/adm/data/package.scala
+   */
+
+  /* Given an array of integers, find the first missing positive integer in linear time and constant space.
+   * In other words, find the lowest positive integer that does not exist in the array.
+   * The array can contain duplicates and negative numbers as well.
+   * For example, the input [3, 4, -1, 1] should give 2. The input [1, 2, 0] should give 3.
+   * You can modify the input array in-place.
+   *
+   * ANSWER: We make a crucial observation: if the input array is partitioned such that positive numbers precede
+   * the negative numbers, the missing positive number is an integer between 1 and n + 1, where n is the index
+   * of the last positive number. This is because if the array had all integers from 1 to n, then the missing integer
+   * would be n + 1. We use a modified 3-way partitioning algorithm for the partitioning step.
+   *
+   * We need some way to mark the integers that are present. If we were allowed to used O(n) space, we could have a
+   * boolean array of length n + 1, and set the indices corresponding to the values found in the input array to true.
+   * Since we are not allowed to use additional space, we will modify the input array to indicate which integers are
+   * present. We do so by walking the array, and for 0 < i <= n, we set A[i - 1] = -A[i - 1]. We then walk the array,
+   * again and when we find a positive value, return its index + 1 as the answer.
+   */
+  def firstMissingPositiveNumber(xs: Array[Int]): Int = {
+    def swap(i: Int, j: Int): Unit = {
+      if (i != j) {
+        val tmp = xs(i)
+        xs(i) = xs(j)
+        xs(j) = tmp
+      }
+    }
+
+    var hi = 0
+    var mid = 0
+    var lo = xs.length - 1
+    val pivot = 0
+
+    while (mid < lo) {
+      if (xs(mid) > pivot) {
+        swap(mid, hi)
+        mid += 1
+        hi += 1
+      } else if (xs(mid) < pivot) {
+        swap(mid, lo)
+        lo -= 1
+      } else mid += 1
+    }
+
+    // if xs(mid) < 0, there are no positive numbers in the array, otherwise mid points to the last non-negative number
+    (0 to mid)
+      .filter(i => xs(i) > 0 && xs(i) <= (mid + 1))
+      .foreach { i =>
+        val x = math.abs(xs(i))
+        // may already be negative if there're duplicates in the array
+        if (xs(x - 1) > 0) xs(x - 1) *= -1
+      }
+
+    (0 to mid)
+      .find(i => xs(i) > 0)
+      .getOrElse(if (xs(mid) < 0) 0 else mid) + 1
+  }
 }

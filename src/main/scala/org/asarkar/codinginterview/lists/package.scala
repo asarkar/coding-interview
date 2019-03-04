@@ -98,4 +98,62 @@ package object lists {
       .map(x => (LinkedList(x._1: _*), x._2))
       .next()
   }
+
+  /*
+   * cons(a, b) constructs a pair, and car(pair) and cdr(pair) returns the first and last element of that pair.
+   * For example, car(cons(3, 4)) returns 3, and cdr(cons(3, 4)) returns 4.
+   * Given this implementation of cons:
+   * def cons(a, b):
+   *   def pair(f):
+   *     return f(a, b)
+   * return pair
+   *
+   * Implement car and cdr.
+   *
+   * ANSWER: This question is about purely functional programming. The Python implementation of cons is a little hard
+   * to follow due to the absence of type information, so let me break it down.
+   *
+   * cons is a higher-order function that accepts two values, and...get this...returns a function that accepts another
+   * function that knows how to operate on those values! The return type of cons is an Int, which is the result of
+   * applying the third function on the given values.
+   * car is a higher-order function that takes the output of cons, and calls it with an anonymous function that
+   * extracts the first element of the given tuple.
+   * cdr is a higher-order function that takes the output of cons, and calls it with an anonymous function that
+   * extracts the second element of the given tuple.
+   *
+   * Let that sink in for a moment, and the following implementation will be self-evident.
+   */
+
+  def cons(a: Int, b: Int): ((Int, Int) => Int) => Int = {
+    def pair(f: (Int, Int) => Int): Int = f(a, b)
+
+    pair
+  }
+
+  def car(f: ((Int, Int) => Int) => Int): Int = {
+    f((a: Int, _: Int) => a)
+  }
+
+  def cdr(f: ((Int, Int) => Int) => Int): Int = {
+    f((_: Int, b: Int) => b)
+  }
+
+  /*
+   * An XOR linked list is a more memory efficient doubly linked list. Instead of each node holding next and prev
+   * fields, it holds a field named both, which is an XOR of the next node and the previous node. Implement an XOR
+   * linked list; it has an add(element) which adds the element to the end, and a get(index) which returns the node
+   * at index.
+   *
+   * If using a language that has no pointers (such as Python), you can assume you have access to get_pointer and
+   * dereference_pointer functions that converts between nodes and memory addresses.
+   *
+   * ANSWER: The idea is that storing the absolute address takes more space than storing the XOR of two absolute
+   * addresses. To traverse the list in forward direction, we simply perform prev XOR both; to traverse the list
+   * backwards, we do next XOR both. Wikipedia explains the math behind it pretty well.
+   * https://en.wikipedia.org/wiki/XOR_linked_list
+   *
+   * The original article seems to be this: https://www.linuxjournal.com/article/6828
+   *
+   * Since no JVM language supports pointer manipulation, I'm not going to implement the XOR linked list.
+   */
 }

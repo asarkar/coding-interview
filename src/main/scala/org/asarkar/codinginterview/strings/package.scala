@@ -172,4 +172,61 @@ package object strings {
       }
       .mkString
   }
+
+  /*
+   * Given an integer k and a string s, find the length of the longest substring that contains at most k distinct
+   * characters.
+   * For example, given s = "abcba" and k = 2, the longest substring with k distinct characters is "bcb".
+   *
+   * ANSWER: A brute force solution would be to find all substrings of the given string, and then count the frequency
+   * of distinct characters in each one. To derive the number of substrings of a string, we observe that:
+   * Number of substrings of length one is n (We can choose any of the n characters).
+   * Number of substrings of length two is n-1 (We can choose any of the n-1 pairs formed by adjacent characters).
+   * Number of substrings of length three is n-2 (We can choose any of the n-2 triplets formed by adjacent characters).
+   *
+   * In general, number of substrings of length k is n-k+1 where 1 <= k <= n.
+   * Total number of substrings of all lengths from 1 to n is given by:
+   * n + (n-1) + (n-2) + (n-3) + ... + 2 + 1
+   * = n * (n + 1)/2
+   * = O(n^2)
+   *
+   * If we keep track of the number of distinct characters in each substring while building it, we get a O(n^2)
+   * solution. Can we do better?
+   *
+   * We can! The idea is maintain a sliding window that expands on the right until the number of distinct characters in
+   * the window exceeds k. At that point, we shrink the window from the left until the the number of distinct characters
+   * in the window is less than or equal to k, and then continue expanding on the right.
+   * The algorithm terminates when the left boundary touches the right (only possible for k > 1), or the right boundary
+   * exceeds the length of the string.
+   */
+  def longestSubstringWithKDistinctChar(str: String, k: Int): Int = {
+    val charFreq = collection.mutable.Map.empty[Char, Int]
+
+    @tailrec
+    def loop(start: Int, end: Int, longestWindow: (Int, Int), numDistinctChars: Int): (Int, Int) = {
+      if (str.isDefinedAt(end) && start <= end) {
+        val chAtEnd = str(end)
+        val count = charFreq.getOrElse(chAtEnd, 0) + 1
+        val x = numDistinctChars + (if (count == 1) 1 else 0)
+
+        if (x <= k) {
+          charFreq(chAtEnd) = count
+          val currentWindowSize = end - start + 1
+          val longestWindowSize = longestWindow._2 - longestWindow._1 + 1
+          val newLongestWindow = if (currentWindowSize > longestWindowSize) (start, end + 1) else longestWindow
+          loop(start, end + 1, newLongestWindow, x)
+        } else {
+          val chAtStart = str(start)
+          charFreq(chAtStart) -= 1
+          val y = numDistinctChars - (if (charFreq(chAtStart) == 0) 1 else 0)
+          loop(start + 1, end, longestWindow, y)
+        }
+      } else longestWindow
+    }
+
+    val (start, end) = loop(0, 0, (-1, -1), 0)
+    val substr = str.slice(start, end + 1)
+    println(s"str = $str, k = $k, longest substring = $substr")
+    substr.length
+  }
 }

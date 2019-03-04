@@ -50,4 +50,10 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
   it should "print all anagrams together" in {
     anagrams1(Seq("the", "rat", "fell", "in", "the", "tar")) should contain theSameElementsAs Seq(Set("rat", "tar"))
   }
+
+  it should "find the length of the longest substring with at most k distinct char" in {
+    longestSubstringWithKDistinctChar("abcba", 2) shouldBe 3
+    longestSubstringWithKDistinctChar("eceba", 2) shouldBe 3
+    longestSubstringWithKDistinctChar("aa", 2) shouldBe 2
+  }
 }

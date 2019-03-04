@@ -78,4 +78,32 @@ package object dp {
 
     dp(n)(prices.size - 1)
   }
+
+  /*
+   * Given a list of integers, write a function that returns the largest sum of non-adjacent numbers.
+   * Numbers can be 0 or negative.
+   * Follow-up: Can you do this in O(N) time and constant space?
+   *
+   * ANSWER: Let dp(i) denote the maximum sum up to the i-th element. If the i-th element is included in the max sum,
+   * dp(i) is obtained by adding it with the max sum obtained so far up to the (i - 2)-th element. If the i-th element
+   * isn't included in the max sum, dp(i) = dp(i - 1). Observe that it's not sufficient to consider the sum of the
+   * i-th element and the (i - 2)-th element. For example, given array [5, 1, 1, 5], the max sum 10 is obtained by the
+   * sum of the 1st and the last elements, not the sum of the 1st and 3rd or the 2nd and the last elements.
+   *
+   * We could iterate over all values of j in [0, i - 2] for each i, but that would give us an O(n^2) algorithm. Instead,
+   * for each i, we keep track of the max value until i - 2. That gives us a O(n) algorithm. Also note that, in order to
+   * calculate dp(i), we only need the max value until i - 2, and dp(i - 1). Thus, we can solve this problem in O(2)
+   * space, or constant space.
+   */
+  def largestNonAdjacentSum(xs: IndexedSeq[Int]): Int = {
+    val dp = Array.tabulate[Int](2)(xs)
+
+    (2 until xs.size).foldLeft(dp.head) { (max, i) =>
+      val j = i % 2
+      dp(j) = math.max(max + xs(i), dp(j ^ 1))
+      math.max(max, dp(j ^ 1))
+    }
+
+    dp.max
+  }
 }

@@ -16,7 +16,7 @@ class RecursionSpec extends FlatSpec with TableDrivenPropertyChecks {
     )
 
     forAll(data) { (msg, n) =>
-      numWays(msg) shouldBe n
+      numWaysToDecode(msg) shouldBe n
     }
   }
 

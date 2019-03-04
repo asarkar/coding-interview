@@ -109,4 +109,11 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
       IndexedSeq(1)
     )) should contain theSameElementsInOrderAs Seq(1)
   }
+
+  it should "find the first missing positive number" in {
+    firstMissingPositiveNumber(Array(3, 4, -1, 1)) shouldBe 2
+    firstMissingPositiveNumber(Array(1, 2, 0)) shouldBe 3
+    firstMissingPositiveNumber(Array(-1, -2, -3)) shouldBe 1
+    firstMissingPositiveNumber(Array(-1, -2, 0)) shouldBe 1
+  }
 }

@@ -50,4 +50,52 @@ class BintreeSpec extends FlatSpec {
     val root = BinTrees.buildBST[Integer](Array[Integer](2, 1, 3, 4))
     BinTrees.levelOrder(root).asScala should contain theSameElementsInOrderAs Seq(2, 1, 3, 4)
   }
+
+  it should "serialize and deserialize a binary tree" in {
+    // src/test/resources/serialized-bst.png
+    val six = new Node[Integer](null, null, 6)
+    val four = new Node[Integer](six, null, 4)
+    val five = new Node[Integer](null, null, 5)
+    val two = new Node[Integer](four, five, 2)
+    val three = new Node[Integer](null, null, 3)
+    val one = new Node[Integer](two, three, 1)
+
+    serialize(one) shouldBe "1 2 4 6 # # # 5 # # 3 # #"
+    val root = deserialize(serialize(one))
+    root should not be null
+    root.datum shouldBe 1
+    root.left should not be null
+    root.right should not be null
+    root.left.datum shouldBe 2
+    root.right.datum shouldBe 3
+    root.right.left shouldBe null
+    root.right.right shouldBe null
+    root.left.left should not be null
+    root.left.right should not be null
+    root.left.left.datum shouldBe 4
+    root.left.right.datum shouldBe 5
+    root.left.left.left should not be null
+    root.left.left.right shouldBe null
+    root.left.left.left.datum shouldBe 6
+    root.left.left.left.left shouldBe null
+  }
+
+  // c.f. src/test/resources/unival.jpg
+  it should "count unival trees" in {
+    val b1 = new Node[Character](null, null, 'b')
+    val b2 = new Node[Character](null, b1, 'b')
+    val b3 = new Node[Character](null, null, 'b')
+    val b4 = new Node[Character](b3, b2, 'b')
+    val c = new Node[Character](null, null, 'c')
+    val a = new Node[Character](c, b4, 'a')
+    countUnival(a) shouldBe 5
+
+    val A = new Node[Character](null, null, 'A')
+    val a1 = new Node[Character](null, A, 'a')
+    val a2 = new Node[Character](null, null, 'a')
+    val a3 = new Node[Character](a2, a1, 'a')
+    val a4 = new Node[Character](null, null, 'a')
+    val a5 = new Node[Character](a3, a4, 'a')
+    countUnival(a5) shouldBe 3
+  }
 }

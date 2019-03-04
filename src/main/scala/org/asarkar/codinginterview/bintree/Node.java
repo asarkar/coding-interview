@@ -7,6 +7,18 @@ public class Node<T> {
     Node<T> right;
     T datum;
 
+    public Node<T> getLeft() {
+        return left;
+    }
+
+    public Node<T> getRight() {
+        return right;
+    }
+
+    public T getDatum() {
+        return datum;
+    }
+
     Node(Node<T> left, Node<T> right, T datum) {
         this.left = left;
         this.right = right;
