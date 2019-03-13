@@ -2,8 +2,9 @@ package org.asarkar.codinginterview.dp
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+import org.scalatest.prop.TableDrivenPropertyChecks
 
-class DPSpec extends FlatSpec {
+class DPSpec extends FlatSpec with TableDrivenPropertyChecks {
   "dp" should "find the number of subsets of the given array that sum to k" in {
     numSubsetsOfSumK(IndexedSeq(2, 4, 6, 10), 16) shouldBe 2
   }
@@ -16,5 +17,45 @@ class DPSpec extends FlatSpec {
     largestNonAdjacentSum(IndexedSeq(2, 4, 6, 2, 5)) shouldBe 13
     largestNonAdjacentSum(IndexedSeq(5, 1, 1, 5)) shouldBe 10
     largestNonAdjacentSum(IndexedSeq(5, 5, 10, 40, 50, 35)) shouldBe 80
+  }
+
+  it should "compute the minimum cost of coloring houses" in {
+    minCostOfColoringHouses(IndexedSeq(
+      IndexedSeq(4, 0, 3),
+      IndexedSeq(8, 3, 8),
+      IndexedSeq(4, 5, 0),
+      IndexedSeq(3, 4, 4),
+      IndexedSeq(8, 8, 0)
+    )) shouldBe 9
+    minCostOfColoringHouses(IndexedSeq(
+      IndexedSeq(1, 2, 3),
+      IndexedSeq(4, 100, 100),
+      IndexedSeq(6, 2, 4)
+    )) shouldBe 8
+    minCostOfColoringHouses(IndexedSeq(
+      IndexedSeq(7, 5, 10),
+      IndexedSeq(3, 6, 1),
+      IndexedSeq(8, 7, 4),
+      IndexedSeq(6, 2, 9),
+      IndexedSeq(1, 4, 7),
+      IndexedSeq(2, 3, 6)
+    )) shouldBe 18
+  }
+
+  it should "check if a regex pattern matches a text" in {
+    val data = Table(
+      ("pattern", "text", "match"),
+      ("ra.", "ray", true),
+      ("ra.", "raymond", false),
+      (".*at", "chat", true),
+      (".*at", "chats", false),
+      ("xa*b.c", "xaabyc", true)
+    )
+
+    forAll(data) { (`pattern`, text, `match`) =>
+      isRegexMatch(`pattern`, text) shouldBe `match`
+    }
+
+    an[IllegalArgumentException] should be thrownBy isRegexMatch("*a", "a")
   }
 }

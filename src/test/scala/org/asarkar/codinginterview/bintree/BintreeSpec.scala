@@ -98,4 +98,41 @@ class BintreeSpec extends FlatSpec {
     val a5 = new Node[Character](a3, a4, 'a')
     countUnival(a5) shouldBe 3
   }
+
+  it should "lock a binary tree" in {
+    val six = new LockableBinTree[Integer](null, null, 6)
+    val four = new LockableBinTree[Integer](six, null, 4)
+    six.parent = four
+    val five = new LockableBinTree[Integer](null, null, 5)
+    val two = new LockableBinTree[Integer](four, five, 2)
+    four.parent = two
+    five.parent = two
+    val three = new LockableBinTree[Integer](null, null, 3)
+    val one = new LockableBinTree[Integer](two, three, 1)
+    two.parent = one
+    three.parent = one
+
+    one.isLocked shouldBe false
+    one.lock() shouldBe one.isLocked
+    one.lock() shouldBe false
+  }
+
+  it should "unlock a binary tree" in {
+    val six = new LockableBinTree[Integer](null, null, 6)
+    val four = new LockableBinTree[Integer](six, null, 4)
+    six.parent = four
+    val five = new LockableBinTree[Integer](null, null, 5)
+    val two = new LockableBinTree[Integer](four, five, 2)
+    four.parent = two
+    five.parent = two
+    val three = new LockableBinTree[Integer](null, null, 3)
+    val one = new LockableBinTree[Integer](two, three, 1)
+    two.parent = one
+    three.parent = one
+
+    one.isLocked shouldBe false
+    one.unlock() shouldBe !one.isLocked
+    one.lock() shouldBe one.isLocked
+    one.unlock() shouldBe false
+  }
 }

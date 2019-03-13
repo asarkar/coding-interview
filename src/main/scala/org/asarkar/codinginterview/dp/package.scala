@@ -1,5 +1,7 @@
 package org.asarkar.codinginterview
 
+import scala.util.{Failure, Success, Try}
+
 package object dp {
   /*
    * Recursive staircase problem
@@ -105,5 +107,105 @@ package object dp {
     }
 
     dp.max
+  }
+
+  /*
+   * A builder is looking to build a row of N houses that can be of K different colors. He has a goal of minimizing
+   * cost while ensuring that no two neighboring houses are of the same color.
+   * Given an N by K matrix where the nth row and kth column represents the cost to build the nth house with kth color,
+   * return the minimum cost which achieves this goal.
+   *
+   * ANSWER: Let dp[i][j] represent the cost of coloring up to the i-th house, with the i-th house painted with the
+   * j-th color.
+   * dp[i][j] = cost[i][j] + min{dp[i - 1][x]}, j, x in [0, K), j != x
+   *
+   * Row dp[N - 1] represents the costs of coloring all the houses such that no two neighboring houses are of the same
+   * color. We simply need to find the minimum value in this row.
+   */
+  def minCostOfColoringHouses(costs: IndexedSeq[IndexedSeq[Int]]): Int = {
+    val dp = Array.tabulate[Int](costs.size, costs.head.size)((i, j) => costs(i)(j))
+
+    for (i <- 1 until costs.size; j <- costs(i).indices) {
+      dp(i)(j) += costs(i)
+        .indices
+        .filterNot(_ == j)
+        .map(dp(i - 1)(_))
+        .min
+    }
+
+    dp.last.min
+  }
+
+  /*
+   * Implement regular expression matching with the following special characters:
+   *   . (period) which matches any single character
+   *   * (asterisk) which matches zero or more of the preceding element
+   *
+   * That is, implement a function that takes in a string and a valid regular expression and returns whether or not the
+   * string matches the regular expression.
+   *
+   * For example, given the regular expression "ra." and the string "ray", your function should return true. The same
+   * regular expression on the string "raymond" should return false.
+   * Given the regular expression ".*at" and the string "chat", your function should return true. The same regular
+   * expression on the string "chats" should return false.
+   *
+   * ANSWER: We implement a DP solution. It implicitly checks that there are no dangling wildcards (in other words,
+   * a wildcard must be preceded by a character). See https://www.youtube.com/watch?v=l3hda49XcDE
+   * Time and space complexity: O(mn).
+   *
+   * The classic approach is to convert the regex to a NFA, which takes same time but less space (O(n) in the worst
+   * case, if the state machine can be in all of the possible states).
+   * See https://blog.asarkar.org/coding-interview-curated/#system-design
+   *
+   * However, we can achieve O(n) space with this solution too if we store only the last two rows.
+   */
+  def isRegexMatch(pattern: String, text: String): Boolean = {
+    val m = pattern.length
+    val n = text.length
+
+    // dp[i][j] indicates the match status of the pattern prefix with i char, and the text prefix with j char
+    val dp = Array.ofDim[Boolean](m + 1, n + 1)
+
+    implicit class Metachar(ch: Char) {
+      val isAnyChar: Boolean = ch == '.'
+      val isWildcard: Boolean = ch == '*'
+    }
+
+    try {
+      // initialize for empty text
+      for (row <- 0 to m) {
+        // empty pattern matches empty text
+        dp(row)(0) = (row == 0) ||
+          // pattern prefix ending with * takes on the value of the match with pattern prefix 2 char removed
+          (pattern(row - 1).isWildcard && dp(row - 2)(0))
+      }
+
+      for (row <- 1 to m; col <- 1 to n) {
+        val patternCh = pattern(row - 1)
+        val textCh = text(col - 1)
+
+        dp(row)(col) = if (patternCh == textCh || patternCh.isAnyChar)
+        // current characters match, match the rest
+          dp(row - 1)(col - 1)
+        else
+        /*
+         * if current char in the pattern is a wildcard, there can be a match if one of the following is true:
+         * - there are zero occurrences of the preceding char in the pattern in at this position of the text,
+         * in which case, the pattern with two char removed (the wildcard and the preceding char) must match the
+         * text so far. for example, the pattern "ab*" matches the text "a".
+         * - there is at least one occurrences of the preceding char in the pattern at this position of the text,
+         * in which case, the preceding char in the pattern must match the current char in the text, and the pattern
+         * must match the text with the current character removed. for example, the pattern "ab*" matches the text
+         * "abb".
+         */
+          patternCh.isWildcard &&
+            (dp(row - 2)(col) ||
+              (dp(row)(col - 1) && (pattern(row - 2) == textCh || pattern(row - 2).isAnyChar)))
+      }
+
+      dp(m)(n)
+    } catch {
+      case _: IndexOutOfBoundsException => throw new IllegalArgumentException(s"Invalid regex pattern: $pattern")
+    }
   }
 }

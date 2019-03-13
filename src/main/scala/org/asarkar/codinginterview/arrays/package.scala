@@ -1,6 +1,7 @@
 package org.asarkar.codinginterview
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 package object arrays {
@@ -413,5 +414,87 @@ package object arrays {
     (0 to mid)
       .find(i => xs(i) > 0)
       .getOrElse(if (xs(mid) < 0) 0 else mid) + 1
+  }
+
+  /*
+   * You are given frames from video segments. Each frame has a unique id. Your task is to find the length of each
+   * video segment.
+   *
+   * Examples:
+   * Given the frames [a, b, c, d], there are four segments of unit length.
+   * Given the frames [a, b, c, a], there is one segment of length 4.
+   * Given the frames [a, b, c, a, b, d, e], there are three segments of lengths 5, 1 and 1, respectively.
+   */
+  def segmentLengths(xs: Seq[Char]): Seq[Int] = {
+    val indexMap = xs
+      .zipWithIndex
+      .toMap // Duplicate keys will be overwritten by later keys
+
+    def findEnd(start: Int, end: Int, idx: Int): Seq[Int] = {
+      if (xs.isDefinedAt(start))
+        if (idx <= end) findEnd(start, math.max(end, indexMap(xs(idx))), idx + 1)
+        else Seq(end - start + 1) ++ findEnd(end + 1, end + 1, end + 1)
+      else Seq.empty
+    }
+
+    findEnd(0, 0, 0)
+  }
+
+  /*
+   * Given an array of integers and a number k, where 1 <= k <= length of the array, compute the maximum values of each
+   * subarray of length k.
+   *
+   * For example, given array = [10, 5, 2, 7, 8, 7] and k = 3, we should get: [10, 7, 8, 8], since:
+   * 10 = max(10, 5, 2)
+   * 7 = max(5, 2, 7)
+   * 8 = max(2, 7, 8)
+   * 8 = max(7, 8, 7)
+   *
+   * Do this in O(n) time and O(k) space. You can modify the input array in-place and you do not need to store the
+   * results. You can simply print them out as you compute them.
+   *
+   * ANSWER: We want the maximum in a sliding window of size k that moves by a unit each time.
+   * We use a queue with two invariants:
+   * 1) The queue only stores indices in the current window.
+   * 2) Indices in the queue are sorted in decreasing order with respect to their corresponding elements.
+   *
+   * At each iteration, the maximum is the element at the top of the queue. To maintain invariant #1, we remove
+   * all indices from the front of queue that are outside the current window. To maintain invariant #2, we remove
+   * all indices from the end of the queue that correspond to elements smaller than the current element.
+   *
+   * Note that although each element may be compared multiple times, it is enqueued and dequeued at most once.
+   * Thus, overall time complexity is O(n), and space complexity is O(k).
+   */
+  def maxValuesOfSubarrays(xs: IndexedSeq[Int], k: Int): Seq[Int] = {
+    if (k <= 0 || k > xs.size) Seq.empty[Int]
+    else {
+      println(s"Given sequence: $xs")
+      val queue = ListBuffer.empty[Int]
+      val numWindows = xs.size - k + 1
+      val maximums = Array.ofDim[Int](numWindows)
+
+      for (i <- xs.indices) {
+        println(s"Queue: $queue")
+        if (i >= k && queue.nonEmpty) {
+          println(s"The maximum element in the window: [${i - k}, $i) is at index: ${queue.head}")
+          maximums(i - k) = xs(queue.head)
+        }
+        while (queue.lastOption.exists(j => xs(j) < xs(i))) {
+          println(s"Removing index: ${queue.last} as the corresponding element is smaller than the incoming element " +
+            s"at index: $i")
+          queue.remove(queue.size - 1)
+        }
+        while (queue.headOption.exists(_ <= (i - k))) {
+          println(s"Removing index: ${queue.head} as it is outside the current window: [$i, ${i + k})")
+          queue.remove(0)
+        }
+
+        println(s"Adding index: $i")
+        queue.append(i)
+      }
+
+      maximums(numWindows - 1) = xs(queue.head)
+      maximums
+    }
   }
 }

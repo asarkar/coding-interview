@@ -116,4 +116,26 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
     firstMissingPositiveNumber(Array(-1, -2, -3)) shouldBe 1
     firstMissingPositiveNumber(Array(-1, -2, 0)) shouldBe 1
   }
+
+  it should "find the lengths of video segments" in {
+    segmentLengths(Seq('a', 'b', 'c', 'd')) should contain theSameElementsInOrderAs Seq.fill(4)(1)
+    segmentLengths(Seq('a', 'b', 'c', 'a')) should contain theSameElementsAs Seq(4)
+    segmentLengths(Seq('a', 'b', 'c', 'a', 'b', 'd', 'e')) should contain theSameElementsInOrderAs Seq(5, 1, 1)
+  }
+
+  it should "compute the maximum values of each subarray of length k" in {
+    val data = Table(
+      ("xs", "k", "maximums"),
+      (IndexedSeq(11, -2, 5, 6, 0, 9, 8, -1, 2, 15), 3, Seq(11, 6, 6, 9, 9, 9, 8, 15)),
+      (IndexedSeq(10, 5, 2, 7, 8, 7), 3, Seq(10, 7, 8, 8)),
+      (IndexedSeq(500), 1, Seq(500)),
+      (IndexedSeq(1, 1, 1), 1, Seq(1, 1, 1)),
+      (IndexedSeq(6), 2, Seq.empty[Int]),
+      (IndexedSeq(6), 0, Seq.empty[Int])
+    )
+
+    forAll(data) { (xs, k, maximums) =>
+      maxValuesOfSubarrays(xs, k) should contain theSameElementsInOrderAs maximums
+    }
+  }
 }

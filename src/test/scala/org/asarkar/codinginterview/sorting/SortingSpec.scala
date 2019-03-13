@@ -21,4 +21,13 @@ class SortingSpec extends FlatSpec {
   it should "return 4-sum" in {
     fourSum(IndexedSeq(1, 0, -1, 0, -2, 2), 0) should contain theSameElementsAs Seq((-2, -1, 1, 2))
   }
+
+  it should "find the minimum number of rooms required" in {
+    minRooms(Seq(
+      (30, 75), (0, 50), (60, 150)
+    )) shouldBe 2
+    minRooms(Seq(
+      (900, 910), (940, 1200), (950, 1120), (1100, 1130), (1500, 1900), (1800, 2000)
+    )) shouldBe 3
+  }
 }

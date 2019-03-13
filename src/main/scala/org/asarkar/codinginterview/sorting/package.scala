@@ -1,5 +1,7 @@
 package org.asarkar.codinginterview
 
+import scala.annotation.tailrec
+
 package object sorting {
   /*
    * 2-sum
@@ -67,5 +69,37 @@ package object sorting {
         .filter(_.size == 4)
         .map(zs => (zs.head, zs.tail.head, zs.tail.tail.head, zs.last))
       )
+  }
+
+  /*
+   * Given an array of time intervals (start, end) for classroom lectures (possibly overlapping), find the minimum
+   * number of rooms required.
+   *
+   * For example, given [(30, 75), (0, 50), (60, 150)], you should return 2.
+   *
+   * ANSWER: We need to find the maximum number of overlapping intervals. To do that, we sort the start and the end
+   * times, and run two pointers over them. Whenever a start time is smaller than an end time, a new meeting is
+   * starting, and a room is needed. Otherwise, a meeting is ended, and a room freed up. The maximum number of rooms
+   * in use at any time is the minimum number of rooms required for all the lectures.
+   *
+   * Time complexity: O(n), space complexity: O(1)
+   */
+  def minRooms(lectures: Seq[(Int, Int)]): Int = {
+    val starts = lectures
+      .map(_._1)
+      .sorted
+    val ends = lectures
+      .map(_._2)
+      .sorted
+
+    @tailrec
+    def loop(i: Int, j: Int, count: Int, rooms: Int): Int = {
+      if (starts.isDefinedAt(i) && ends.isDefinedAt(j)) {
+        if (starts(i) < ends(j)) loop(i + 1, j, count + 1, math.max(rooms, count + 1))
+        else loop(i, j + 1, count - 1, rooms)
+      } else rooms
+    }
+
+    loop(0, 0, 0, 0)
   }
 }
