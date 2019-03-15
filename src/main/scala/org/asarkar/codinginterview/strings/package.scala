@@ -229,4 +229,31 @@ package object strings {
     println(s"str = $str, k = $k, longest substring = $substr")
     substr.length
   }
+
+  /*
+   * Run-length encoding is a fast and simple method of encoding strings. The basic idea is to represent repeated
+   * successive characters as a single count and character. For example, the string "AAAABBBCCDAA" would be encoded
+   * as "4A3B2C1D2A".
+   * Implement run-length encoding and decoding. You can assume the string to be encoded have no digits and consists
+   * solely of alphabetic characters. You can assume the string to be decoded is valid.
+   */
+  def runLengthEncoding(str: String): String = {
+    (1 to str.length)
+      .foldLeft((1, new StringBuilder())) { case ((count, buffer), i) =>
+        if (str.lift(i).contains(str(i - 1))) (count + 1, buffer)
+        else (1, buffer.append(count).append(str(i - 1)))
+      }
+      ._2
+      .mkString
+  }
+
+  def runLengthDecoding(str: String): String = {
+    str
+      .sliding(2, 2)
+      .foldLeft(new StringBuilder())((buffer, pair) =>
+        (1 to pair.head.asDigit)
+          .foldLeft(buffer)((x, _) => x.append(pair.last))
+      )
+      .toString()
+  }
 }

@@ -4,6 +4,27 @@ import scala.util.Random
 
 class Minesweeper(val size: Int, val numMines: Int) {
   private val board = Array.ofDim[Int](size, size)
+  private val end = size * size
+
+  def numMinesAround(row: Int, col: Int): Int = board(row)(col)
+
+  import Minesweeper.Mine
+
+  def show(): Unit = println(board.map(_.mkString(" ")).mkString(System.lineSeparator()))
+  (1 to numMines)
+    .foldLeft(Seq.empty[Int]) { (mines, _) =>
+      val mine = randWithExclusion(0, end, mines)
+      val (row, col) = (mine / size, mine % size)
+
+      assert(!hasMine(row, col), s"[$row][$col] already has a mine")
+      board(row)(col) = Mine
+      mines :+ mine
+    }
+    .foreach { mine =>
+      val (row, col) = (mine / size, mine % size)
+      neighbors(row, col)
+        .foreach(x => board(x._1)(x._2) += 1)
+    }
 
   /*
    * Consider the range broken up into start..ex₁..ex₂..exₖ..end. If the random number 'r' falls in [start, ex₁), we
@@ -41,29 +62,7 @@ class Minesweeper(val size: Int, val numMines: Int) {
       .filterNot(x => hasMine(x._1, x._2))
   }
 
-  import Minesweeper.Mine
-
-  private val end = size * size
-  (1 to numMines)
-    .foldLeft(Seq.empty[Int]) { (mines, _) =>
-      val mine = randWithExclusion(0, end, mines)
-      val (row, col) = (mine / size, mine % size)
-
-      assert(!hasMine(row, col), s"[$row][$col] already has a mine")
-      board(row)(col) = Mine
-      mines :+ mine
-    }
-    .foreach { mine =>
-      val (row, col) = (mine / size, mine % size)
-      neighbors(row, col)
-        .foreach(x => board(x._1)(x._2) += 1)
-    }
-
   def hasMine(row: Int, col: Int): Boolean = board(row)(col) == Mine
-
-  def numMinesAround(row: Int, col: Int): Int = board(row)(col)
-
-  def show(): Unit = println(board.map(_.mkString(" ")).mkString(System.lineSeparator()))
 
   // TODO: Implement expansion
 }

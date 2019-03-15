@@ -11,6 +11,15 @@ case class TrieNode(
     insert(word, 0)
   }
 
+  def contains(word: String): Boolean = find(word).isDefined
+
+  def find(word: String): Option[TrieNode] = {
+    if (!children.contains(word.headOption.getOrElse('\u0000'))) None
+    else if (word.tail.isEmpty) children.get(word.head)
+    else children.get(word.head)
+      .flatMap(_.find(word.tail))
+  }
+
   private def insert(word: String, i: Int): Unit = {
     if (word.isDefinedAt(i)) {
       val ch = word(i)
@@ -20,15 +29,6 @@ case class TrieNode(
       children(ch).suggestions += word
       children(ch).insert(word, i + 1)
     }
-  }
-
-  def contains(word: String): Boolean = find(word).isDefined
-
-  def find(word: String): Option[TrieNode] = {
-    if (!children.contains(word.headOption.getOrElse('\u0000'))) None
-    else if (word.tail.isEmpty) children.get(word.head)
-    else children.get(word.head)
-      .flatMap(_.find(word.tail))
   }
 }
 

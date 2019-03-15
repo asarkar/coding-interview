@@ -56,4 +56,14 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
     longestSubstringWithKDistinctChar("eceba", 2) shouldBe 3
     longestSubstringWithKDistinctChar("aa", 2) shouldBe 2
   }
+
+  it should "implement run-length encoding" in {
+    runLengthEncoding("AAAABBBCCDAA") shouldBe "4A3B2C1D2A"
+    runLengthEncoding("A") shouldBe "1A"
+  }
+
+  it should "implement run-length decoding" in {
+    runLengthDecoding("4A3B2C1D2A") shouldBe "AAAABBBCCDAA"
+    runLengthDecoding("1A") shouldBe "A"
+  }
 }

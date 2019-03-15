@@ -1,15 +1,12 @@
 package org.asarkar.codinginterview.design
 
 class JsonFormatter {
-  private var level: Int = 0
-
   private val Space = " "
   private val Echo = (c: Char, buffer: StringBuilder) => buffer.append(c)
   private val Enter = (_: Char, buffer: StringBuilder) => buffer.append(System.lineSeparator())
   private val LevelUp = (_: Char, _: StringBuilder) => level += 1
   private val LevelDown = (_: Char, _: StringBuilder) => level -= 1
   private val Indent = (_: Char, buffer: StringBuilder) => buffer.appendAll(Space * (4 * level))
-
   private val Rules = Map(
     '{' -> Seq(Echo, Enter, LevelUp, Indent),
     '[' -> Seq(Echo, Enter, LevelUp, Indent),
@@ -17,6 +14,7 @@ class JsonFormatter {
     '}' -> Seq(Enter, LevelDown, Indent, Echo),
     ']' -> Seq(Enter, LevelDown, Indent, Echo)
   )
+  private var level: Int = 0
 
   def format(s: String): String = {
     val buffer = new StringBuilder()

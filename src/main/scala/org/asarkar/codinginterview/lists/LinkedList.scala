@@ -5,13 +5,13 @@ sealed trait LinkedList[+A] {
 
   def next: LinkedList[A] = ???
 
-  def isEmpty: Boolean = true
-
   def nonEmpty: Boolean = !isEmpty
 
-  def foldLeft[B](acc: B)(f: (B, A) => B): B = acc
+  def isEmpty: Boolean = true
 
   def toSeq: Seq[A] = foldLeft(Seq.empty[A])((acc, x) => acc :+ x)
+
+  def foldLeft[B](acc: B)(f: (B, A) => B): B = acc
 }
 
 case object Nil extends LinkedList[Nothing]

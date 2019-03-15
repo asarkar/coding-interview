@@ -135,4 +135,20 @@ class BintreeSpec extends FlatSpec {
     one.lock() shouldBe one.isLocked
     one.unlock() shouldBe false
   }
+
+  it should "find the second largest node" in {
+    val five = new Node[Integer](null, null, 5)
+    val ten = new Node[Integer](five, null, 5)
+    var sndLargest = secondLargest(ten)
+    sndLargest should not be null
+    sndLargest shouldBe 5
+
+    val thirty = new Node[Integer](null, null, 30)
+    val twenty = new Node[Integer](null, thirty, 20)
+    ten.right = twenty
+
+    sndLargest = secondLargest(ten)
+    sndLargest should not be null
+    sndLargest shouldBe 20
+  }
 }

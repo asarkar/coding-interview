@@ -30,4 +30,10 @@ class SortingSpec extends FlatSpec {
       (900, 910), (940, 1200), (950, 1120), (1100, 1130), (1500, 1900), (1800, 2000)
     )) shouldBe 3
   }
+
+  it should "partition RGB array" in {
+    val colors = Array('G', 'B', 'R', 'R', 'B', 'R', 'G')
+    partitionRGB(colors)
+    colors shouldBe colors.sorted.reverse
+  }
 }

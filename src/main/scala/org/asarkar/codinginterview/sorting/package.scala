@@ -102,4 +102,48 @@ package object sorting {
 
     loop(0, 0, 0, 0)
   }
+
+  /*
+   * Given an array of strictly the characters 'R', 'G' and 'B', segregate the values of the array so that all the Rs
+   * come first, the Gs come second, and the Bs come last. You can only swap elements of the array.
+   * Do this in linear time and in-place.
+   *
+   * For example, given the array ['G', 'B', 'R', 'R', 'B', 'R', 'G'], it should become
+   * ['R', 'R', 'R', 'G', 'G', 'B', 'B'].
+   *
+   * ANSWER: We use a modified 3-way partitioning algorithm for the partitioning step.
+   */
+  def partitionRGB(colors: Array[Char]): Unit = {
+    def swap(i: Int, j: Int): Unit = {
+      if (i != j) {
+        val tmp = colors(i)
+        colors(i) = colors(j)
+        colors(j) = tmp
+      }
+    }
+
+    var hi = 0
+    var mid = 0
+    var lo = colors.length - 1
+    val pivot = 'G'
+
+    while (mid <= lo) {
+      if (colors(mid) > pivot) {
+        swap(mid, hi)
+        mid += 1
+        hi += 1
+      } else if (colors(mid) < pivot) {
+        swap(mid, lo)
+        // don't increment mid yet since we don't know anything about the element that ended up there
+        lo -= 1
+      } else mid += 1
+    }
+
+    assert(!(0 until lo).exists(colors(_) < pivot),
+      s"All elements on the left of index: $lo must be >= $pivot, ${colors.deep}"
+    )
+    assert(!(hi + 1 until colors.length).exists(colors(_) > pivot),
+      s"All elements on the right of index: $hi must be <= $pivot, ${colors.deep}"
+    )
+  }
 }

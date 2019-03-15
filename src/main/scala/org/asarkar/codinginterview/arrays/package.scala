@@ -350,16 +350,6 @@ package object arrays {
     loop(0, 0)
   }
 
-  /*
-   * Given an array of integers, return a new array such that each element at index i of the new array is the product
-   * of all the numbers in the original array except the one at i. For example, if our input was [1, 2, 3, 4, 5], the
-   * expected output would be [120, 60, 40, 30, 24]. If our input was [3, 2, 1], the expected output would be [2, 3, 6].
-   *
-   * Follow-up: what if you can't use division?
-   *
-   * ANSWER: See https://github.com/asarkar/adm/blob/master/src/main/scala/org/asarkar/adm/data/package.scala
-   */
-
   /* Given an array of integers, find the first missing positive integer in linear time and constant space.
    * In other words, find the lowest positive integer that does not exist in the array.
    * The array can contain duplicates and negative numbers as well.
@@ -391,30 +381,48 @@ package object arrays {
     var lo = xs.length - 1
     val pivot = 0
 
-    while (mid < lo) {
+    while (mid <= lo) {
       if (xs(mid) > pivot) {
         swap(mid, hi)
         mid += 1
         hi += 1
       } else if (xs(mid) < pivot) {
         swap(mid, lo)
+        // don't increment mid yet since we don't know anything about the element that ended up there
         lo -= 1
       } else mid += 1
     }
 
-    // if xs(mid) < 0, there are no positive numbers in the array, otherwise mid points to the last non-negative number
-    (0 to mid)
-      .filter(i => xs(i) > 0 && xs(i) <= (mid + 1))
+    // if xs(lo) < 0, there are no positive numbers in the array, otherwise lo points to the last non-negative number
+    assert(!(0 until lo).exists(xs(_) < pivot),
+      s"All elements on the left of index: $lo must be >= $pivot, ${xs.deep}"
+    )
+    assert(!(hi + 1 until xs.length).exists(xs(_) > pivot),
+      s"All elements on the right of index: $hi must be <= $pivot, ${xs.deep}"
+    )
+
+    (0 to lo)
+      .filter(i => xs(i) > 0)
       .foreach { i =>
         val x = math.abs(xs(i))
         // may already be negative if there're duplicates in the array
         if (xs(x - 1) > 0) xs(x - 1) *= -1
       }
 
-    (0 to mid)
-      .find(i => xs(i) > 0)
-      .getOrElse(if (xs(mid) < 0) 0 else mid) + 1
+    (0 to lo)
+      .find(i => i >= 0 && xs(i) >= 0)
+      .getOrElse(0) + 1
   }
+
+  /*
+   * Given an array of integers, return a new array such that each element at index i of the new array is the product
+   * of all the numbers in the original array except the one at i. For example, if our input was [1, 2, 3, 4, 5], the
+   * expected output would be [120, 60, 40, 30, 24]. If our input was [3, 2, 1], the expected output would be [2, 3, 6].
+   *
+   * Follow-up: what if you can't use division?
+   *
+   * ANSWER: See https://github.com/asarkar/adm/blob/master/src/main/scala/org/asarkar/adm/data/package.scala
+   */
 
   /*
    * You are given frames from video segments. Each frame has a unique id. Your task is to find the length of each
@@ -496,5 +504,54 @@ package object arrays {
       maximums(numWindows - 1) = xs(queue.head)
       maximums
     }
+  }
+
+  /*
+  * You are given an array of non-negative integers that represents a two-dimensional elevation map where each element
+  * is unit-width wall and the integer is the height. Suppose it will rain and all spots between two walls get filled
+  * up.
+  * Compute how many units of water remain trapped on the map in O(N) time and O(1) space.
+  *
+  * For example, given the input [2, 1, 2], we can hold 1 unit of water in the middle.
+  * Given the input [3, 0, 1, 3, 0, 5], we can hold 3 units in the first index, 2 in the second, and 3 in the fourth
+  * index (we cannot hold 5 since it would run off to the left), so we can trap 8 units of water.
+  *
+  * ANSWER: See rainwater.png for a visual explanation of the problem. We make a crucial observation that the amount
+  * of rain water trapped between two buildings (can equivalently be thought of as water trapped on top of a building)
+  * depends on the minimum of the maximum heights on either side of the building. Any more than the height of the
+  * minimum, and the water will run off. The amount of water trapped is the difference between the heights of the min
+  * height building and the one in question.
+  * A naive way to solve this problem would be to find the building with the max height on either side of a building.
+  * That, however, yields a O(n^2) algorithm. Can we do better?
+  *
+  * What if we start moving inward from the boundaries, keeping track of the respective maximum heights? If the current
+  * building on the left is shorter than the one on the right, the amount of water trapped depends only on the
+  * building with the max height on the left. This is perhaps not very intuitive, but it is true for all elevation
+  * maps.
+  *
+  * Similarly, if a building is shorter than the one on its left, the amount of water trapped on it depends solely on
+  * the building with the max height on its right.
+  *
+  * If a building is taller than the one on its left or right, we can't tell anything about the amount of water trapped
+  * on it.
+  *
+  * The following code follows from the explanation above.
+  */
+  def rainWaterTrapped(xs: IndexedSeq[Int]): Int = {
+    def loop(l: Int, r: Int, lMax: Int, rMax: Int): Int = {
+      if (l <= r) {
+        val left = xs(l)
+        val right = xs(r)
+        if (left < right) {
+          val max = math.max(lMax, left)
+          (max - left) + loop(l + 1, r, max, rMax)
+        } else {
+          val max = math.max(rMax, right)
+          (max - right) + loop(l, r - 1, lMax, max)
+        }
+      } else 0
+    }
+
+    loop(0, xs.size - 1, -1, -1)
   }
 }

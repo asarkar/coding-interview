@@ -153,10 +153,10 @@ package object recursion {
   }
 
   /*
-   * Given a dictionary of words and a string made up of those words (no spaces), return the original sentence in a 
-   * list. If there is more than one possible reconstruction, return any of them. If there is no possible 
+   * Given a dictionary of words and a string made up of those words (no spaces), return the original sentence in a
+   * list. If there is more than one possible reconstruction, return any of them. If there is no possible
    * reconstruction, then return null.
-   * 
+   *
    * For example, given the set of words 'quick', 'brown', 'the', 'fox', and the string "thequickbrownfox", you should
    * return ['the', 'quick', 'brown', 'fox'].
    * Given the set of words 'bed', 'bath', 'bedbath', 'and', 'beyond', and the string "bedbathandbeyond", return
@@ -278,4 +278,12 @@ package object recursion {
     visit(start._1, start._2)
     dist(end._1)(end._2)
   }
+
+  /*
+   * You have an N by N board. Write a function that, given N, returns the number of possible arrangements of the board
+   * where N queens can be placed on the board without threatening each other, i.e. no two queens share the same row,
+   * column, or diagonal.
+   *
+   * ANSWER: See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/recursion/package.scala
+   */
 }

@@ -3,7 +3,6 @@ package org.asarkar.codinginterview.recursion
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks
-import org.scalatest.OptionValues._
 
 class RecursionSpec extends FlatSpec with TableDrivenPropertyChecks {
   "recursion" should "find the number of ways to decode the given message" in {

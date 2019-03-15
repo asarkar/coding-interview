@@ -1,5 +1,6 @@
 package org.asarkar.codinginterview
 
+import scala.annotation.tailrec
 import scala.util.matching.Regex
 
 package object bintree {
@@ -70,5 +71,25 @@ package object bintree {
     }
 
     loop(root)._1
+  }
+
+  /*
+   * Given the root to a binary search tree, find the second largest node in the tree.
+   *
+   * ANSWER: This question is basically asking to find the inorder predecessor of the maximum node. When there's no
+   * right subtree, the maximum node is the root node (recursively). Its inorder predecessor is its left child.
+   * When there's a right subtree, the maximum node is the rightmost element. Its inorder predecessor is its parent.
+   */
+  def secondLargest(root: Node[Integer]): Integer = {
+    @tailrec
+    def loop(node: Node[Integer], parent: Node[Integer]): Integer = {
+      if (node == null || (node.getLeft == null && node.getRight == null))
+        if (node != null && parent.getDatum > node.getDatum) node.getDatum
+        else parent.getDatum
+      else if (node.getRight == null) loop(node.getLeft, node)
+      else loop(node.getRight, node)
+    }
+
+    loop(root, null)
   }
 }

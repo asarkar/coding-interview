@@ -1,5 +1,7 @@
 package org.asarkar.codinginterview.dp
 
+import java.util.regex.PatternSyntaxException
+
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks
@@ -56,6 +58,22 @@ class DPSpec extends FlatSpec with TableDrivenPropertyChecks {
       isRegexMatch(`pattern`, text) shouldBe `match`
     }
 
-    an[IllegalArgumentException] should be thrownBy isRegexMatch("*a", "a")
+    an[PatternSyntaxException] should be thrownBy isRegexMatch("*a", "a")
+  }
+
+  it should "find the palindrome that can be made by inserting the fewest number of characters" in {
+    val data = Table(
+      ("word", "palindrome"),
+      ("race", "ecarace"),
+      ("google", "elgoogle"),
+      ("abcda", "abcdcba"),
+      ("abcd", "abcdcba"),
+      ("ab", "aba"),
+      ("aa", "aa")
+    )
+
+    forAll(data) { (word, palindrome) =>
+      makePalindromeByFewestEdits(word) shouldBe palindrome
+    }
   }
 }
