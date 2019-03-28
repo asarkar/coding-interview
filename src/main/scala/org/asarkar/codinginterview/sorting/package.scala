@@ -146,4 +146,52 @@ package object sorting {
       s"All elements on the right of index: $hi must be <= $pivot, ${colors.deep}"
     )
   }
+
+  /*
+   * We can determine how "out of order" an array A is by counting the number of inversions it has. Two elements
+   * A[i] and A[j] form an inversion if A[i] > A[j] but i < j. That is, a smaller element appears after a larger
+   * element.
+   *
+   * Given an array, count the number of inversions it has. Do this faster than O(N^2) time.
+   * You may assume each element in the array is distinct.
+   *
+   * For example, a sorted list has zero inversions. The array [2, 4, 1, 3, 5] has three inversions: (2, 1), (4, 1),
+   * and (4, 3). The array [5, 4, 3, 2, 1] has ten inversions: every distinct pair forms an inversion.
+   *
+   * ANSWER: We can solve this problem by modifying the merge step of merge sort to count the number of inversions in
+   * addition to merging two sorted arrays. Observe that if arrays A and B are sorted, A[i] > B[j] is an inversion.
+   * Not only that, since A is sorted, the elements A[i+1] till the end are also greater than B[j], and count as
+   * inversions.
+   * Time Complexity: O(n log(n))
+   */
+  def numInversions(xs: IndexedSeq[Int]): Int = {
+    def mergeAndCount(a: IndexedSeq[Int], b: IndexedSeq[Int], i: Int = 0, j: Int = 0): (IndexedSeq[Int], Int) = {
+      if (a.isDefinedAt(i) && b.isDefinedAt(j)) {
+        if (a(i) > b(j)) {
+          val (merged, count) = mergeAndCount(a, b, i, j + 1)
+          (b(j) +: merged, count + (a.size - i))
+        } else {
+          val (merged, count) = mergeAndCount(a, b, i + 1, j)
+          (a(i) +: merged, count)
+        }
+      } else {
+        (a.takeRight(a.size - i) ++ b.takeRight(b.size - j), 0)
+      }
+    }
+
+    def mergeSort(a: IndexedSeq[Int]): (IndexedSeq[Int], Int) = {
+      if (a.size <= 1) (a, 0)
+      else {
+        val mid = a.size / 2
+        val (left, right) = a.splitAt(mid)
+        val (sorted1, count1) = mergeSort(left)
+        val (sorted2, count2) = mergeSort(right)
+
+        val (sorted3, count3) = mergeAndCount(sorted1, sorted2)
+        (sorted3, count1 + count2 + count3)
+      }
+    }
+
+    mergeSort(xs)._2
+  }
 }

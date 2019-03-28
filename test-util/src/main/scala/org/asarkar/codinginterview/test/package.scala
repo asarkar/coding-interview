@@ -1,4 +1,4 @@
-package org.asarkar.epi
+package org.asarkar.codinginterview
 
 import java.io.{IOException, InputStream}
 import java.nio.file.Path

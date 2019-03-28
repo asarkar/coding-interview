@@ -235,14 +235,17 @@ package object recursion {
    * and start = (3, 0) (bottom left) and end = (0, 0) (top left), the minimum number of steps required to reach the
    * end is 7, since we would need to go through (1, 2) because there is a wall everywhere else on the second row.
    *
-   * ANSWER: We will run Dijkstra's SSSP algorithm, without creating a graph explicitly, and without using a min heap.
-   * Since the number of neighbors for any cell can be at max four, sorting the list of neighbors takes O(1) time.
+   * ANSWER: We will run BFS, without creating a graph explicitly. Given a M x N matrix, for each row, there are N - 1
+   * horizontal edges, and since there are M rows, there are total M(N - 1) horizontal edges. Similarly, there are
+   * N(M - 1) vertical edges. Total number of edges = M(N - 1) + N(M - 1) = 2MN - M - N. If M = N, this is a quadratic
+   * number, and hence the graph is a dense graph.
+   * Time complexity of BFS is O(|V| + |E|), and since |E| ≅ |V|x|V|, time complexity is O(|E|) or O(MN).
    */
   def minSteps(board: IndexedSeq[IndexedSeq[Boolean]], start: (Int, Int), end: (Int, Int)): Int = {
     val m = board.size
     val n = board.head.size
-    val dist = Array.tabulate[Int](m, n)((r, c) => if ((r, c) == start) 0 else Int.MaxValue)
     val visited = Array.ofDim[Boolean](m, n)
+    val queue = mutable.ListBuffer.empty[((Int, Int), Int)]
 
     def neighbors(row: Int, col: Int): Seq[(Int, Int)] = {
       Seq(
@@ -254,29 +257,32 @@ package object recursion {
         .filter { case (r, c) => board.isDefinedAt(r) && board(r).isDefinedAt(c) && !board(r)(c) }
     }
 
-    def visit(row: Int, col: Int): Unit = {
-      println(s"Visiting: [$row][$col]")
-      visited(row)(col) = true
+    @tailrec
+    def search(): Int = {
+      if (queue.isEmpty) -1
+      else {
+        val ((row, col), steps) = queue.remove(0)
 
-      val xs = neighbors(row, col)
-        // evaluate lazily, since the cell may be visited from another of its neighbor before it's visited from this
-        // one
-        .view
-        .filterNot { case (r, c) => visited(r)(c) }
+        if ((row, col) == end) steps
+        else {
+          if (!visited(row)(col)) {
+            println(s"Visiting: [$row][$col]")
+            visited(row)(col) = true
 
-      xs
-        // decrease key
-        .foreach { case (r, c) => dist(r)(c) = math.min(dist(row)(col) + 1, dist(r)(c)) }
+            neighbors(row, col)
+              // evaluate lazily, since the cell may be visited from another of its neighbor before it's visited
+              // from this one
+              .withFilter { case (r, c) => !visited(r)(c) }
+              .foreach(x => queue.append((x, steps + 1)))
+          }
 
-      xs
-        .sortBy(x => dist(x._1)(x._2))
-        .filterNot(_ => visited(end._1)(end._2))
-        // extract min
-        .foreach { case (r, c) => visit(r, c) }
+          search()
+        }
+      }
     }
 
-    visit(start._1, start._2)
-    dist(end._1)(end._2)
+    queue.append((start, 0))
+    search()
   }
 
   /*
@@ -286,4 +292,23 @@ package object recursion {
    *
    * ANSWER: See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/recursion/package.scala
    */
+
+  /*
+   * Write a method to return all valid combinations of n-pairs of parentheses.
+   * The method should return an ArrayList of strings, in which each string represents a valid combination of
+   * parentheses.
+   * The order of the strings in the ArrayList does not matter.
+   *
+   * Examples: combParenthesis(2) ==> {"(())","()()"}
+   * Note: Valid combination means that parentheses pairs are not left open. ")()(" is not a valid combination.
+   */
+  def combineParenthesis(n: Int): Seq[String] = {
+    def loop(str: String, open: Int, close: Int): Seq[String] = {
+      if (math.max(open, close) > n || close > open) Seq.empty[String]
+      else if (close == n) Seq(str).filter(_.nonEmpty)
+      else loop(str + ")", open, close + 1) ++ loop(str + "(", open + 1, close)
+    }
+
+    loop("", 0, 0)
+  }
 }

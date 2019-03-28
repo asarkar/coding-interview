@@ -256,4 +256,122 @@ package object strings {
       )
       .toString()
   }
+
+  /*
+   * Given two strings - input1 and input2, determine if they are isomorphic.
+   * Two strings are isomorphic if the letters in one string can be remapped to get the second string. Remapping a
+   * letter means replacing all occurrences of it with another letter. The ordering of the letters remains unchanged.
+   * You can also think of isomorphism as it is used in chemistry - i.e. having the same form or overall shape.
+   * Target linear time and space complexity with your solution.
+   *
+   * ANSWER: What the question doesn't say is the following:
+   * - same character in s1 can't be mapped to different characters in s2 ("aba" and "baa" are not isomorphic)
+   * - different characters in s1 can't be mapped to the same character in s2 ("abcd" and "aabb" are not isomorphic)
+   *
+   * To check for the above conditions, we maintain two maps, chars of s1 to chars of s2, and chars of s2 to chars of
+   * s1. The rest of the algorithm is pretty straightforward.
+   */
+  def isIsomorphic(s1: String, s2: String): Boolean = {
+    if (s1.length != s2.length) false
+    else Iterator.iterate((Map.empty[Char, Char], Map.empty[Char, Char], 0, true)) { case (map1, map2, i, _) =>
+      val ch1 = s1(i)
+      val ch2 = s2(i)
+      if (map1.getOrElse(ch1, ch2) != ch2 || map2.getOrElse(ch2, ch1) != ch1) (map1, map2, i + 1, false)
+      else (map1 + (ch1 -> ch2), map2 + (ch2 -> ch1), i + 1, true)
+    }
+      .dropWhile(x => (x._3 < s1.length) && x._4)
+      .take(1)
+      .map(_._4)
+      .next()
+  }
+
+  /*
+   * Given a string, find the longest palindromic contiguous substring. If there are more than one with the maximum
+   * length, return any one.
+   *
+   * For example, the longest palindromic substring of "aabcdcb" is "bcdcb'. The longest palindromic substring of
+   * "bananas" is "anana".
+   *
+   * ANSWER: The trivial algorithm for this is to consider each character as the center of a potential palindrome, and
+   * expand around it. By expansion, we mean comparing the characters c - i and c + i for i > 0. This approach works,
+   * but may take O(n^2) time in the worst case. To see why, consider the string "aaaaa". We do zero comparison for the
+   * 1st char, one comparison for the second, and two for the third. Thus, we do (0 + 1 + ... + n/2) comparisons up to
+   * the middle element, which adds up to (n/2 * (n/2 + 1)) / 2).
+   * https://en.wikipedia.org/wiki/1_%2B_2_%2B_3_%2B_4_%2B_%E2%8B%AF
+   *
+   * Can we do better?
+   *
+   * We can, using Manacher's algorithm. The idea is to cut down the number of comparisons by utilizing the information
+   * learned so far, and by making some cleaver insights. Let's introduce some notations first:
+   * T: Given string transformed to insert a special character '#' in between every two characters, and also at the
+   *    beginning and the end. This transforms every word to an odd-length word, thus allowing us to reason about the
+   *    algorithm without having to worry about whether the given word is of odd-length or even. '#' is a random char
+   *    chosen such that it already doesn't exist in the given string.
+   * C: Center of the largest palindrome found so far.
+   * R: Right edge of the palindrome centered at C; R >= C.
+   * i: Some index > C.
+   * P: Array that stores the length of the longest palindrome for 0 <= j < i.
+   *
+   * Since a palindrome is mirrored around its center, T[C - k] = T[C + k] for 0 <= k <= R - C. Let i' be the mirror of
+   * i with respect to C, i.e. C - i' = i - C. What can we deduce about P[i] knowing P[i']?
+   *
+   * Case 1, P[i'] < R - C: The palindrome centered at i' is completely contained in the palindrome centered at C. In
+   * this case, we can say that P[i] = P[i']. Why? Since there is a palindrome centered at C, T[i + k] = T[i' - k] for
+   * all 0 <= k <= R - C. If P[i] could be larger than P[i'], we would have a contradiction. It would mean that we would
+   * be able to extend the palindrome centered at i beyond P[i'], but if we could, then we would also be able to extend
+   * the palindrome centered at i' due to the symmetry, but it was already supposed to be as large as possible.
+   *
+   * Case 2, P[i'] > R - C: P[i] = R - i. Why? Suppose P[i] were longer than this: that would imply that
+   * T[R + 1] = T[i - (R - i + 1)]. T[i - (R - i + 1)] = T[i' + (R - i + 1)] because there's a palindrome centred at C;
+   * and T[i' + (R - i + 1)] = T[i' - (R - i + 1)] because there's a palindrome of width at least R - i + 1 centred at
+   * i' (since we have assumed P[i'] > R - i). i' - (R - i + 1) = L - 1, so what this means is that
+   * T[R + 1] = T[L - 1]. But this is a contradiction since in that case, P[C] wouldn't be the largest.
+   *
+   * Case 3, P[i'] = R - C: We know P[i] to be at least at large at P[i'], but it can be larger, since we don't know
+   * anything about the characters beyond R. Thus, we expand by launching the trivial algorithm beyond R.
+   *
+   * Case 2 and 3 can be coded as min(R - C, P[i']), and then by expanding. This doesn't increase the time complexity,
+   * because in case 2, the expansion would fail immediately.
+   *
+   * Time Complexity is O(n), although I've not found a rigorous proof for this, and people seem to be hand waving the
+   * analysis. The trivial algorithm takes linear time in the worst case, but how may times we launch the linear
+   * algorithm is unclear.
+   */
+  def longestPalindromicSubstr(s: String): String = {
+    val sb = s
+      .foldLeft(new StringBuilder())((acc, c) => acc.append('#').append(c))
+      .append('#')
+    val n = sb.length - 1
+    val dp = Array.ofDim[Int](n + 1)
+
+    @tailrec
+    def expand(center: Int, i: Int): String = {
+      val right = center + dp(center)
+      if (i > n || right == n) sb
+        .slice(center - dp(center), right + 1)
+        .filterNot(_ == '#')
+        .toString()
+      else {
+        val distToRight = right - i
+        val mirror = center - (i - center)
+        // length of the longest palindrome centered at the mirror
+        val x = dp.lift(mirror).getOrElse(0)
+
+        dp(i) = if (x < distToRight) x
+        else
+          Iterator.from(math.min(x, distToRight))
+            .dropWhile { j =>
+              val (l, r) = (i - j, i + j)
+              sb.isDefinedAt(l) && sb.isDefinedAt(r) && sb(l) == sb(r)
+            }
+            .take(1)
+            .next() - 1 // we stop immediately after the last matching char
+
+        if (dp(i) > dp(center)) expand(i, i + 1)
+        else expand(center, i + 1)
+      }
+    }
+
+    expand(0, 0)
+  }
 }

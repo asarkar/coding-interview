@@ -356,63 +356,8 @@ package object arrays {
    * For example, the input [3, 4, -1, 1] should give 2. The input [1, 2, 0] should give 3.
    * You can modify the input array in-place.
    *
-   * ANSWER: We make a crucial observation: if the input array is partitioned such that positive numbers precede
-   * the negative numbers, the missing positive number is an integer between 1 and n + 1, where n is the index
-   * of the last positive number. This is because if the array had all integers from 1 to n, then the missing integer
-   * would be n + 1. We use a modified 3-way partitioning algorithm for the partitioning step.
-   *
-   * We need some way to mark the integers that are present. If we were allowed to used O(n) space, we could have a
-   * boolean array of length n + 1, and set the indices corresponding to the values found in the input array to true.
-   * Since we are not allowed to use additional space, we will modify the input array to indicate which integers are
-   * present. We do so by walking the array, and for 0 < i <= n, we set A[i - 1] = -A[i - 1]. We then walk the array,
-   * again and when we find a positive value, return its index + 1 as the answer.
+   * ANSWER: See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/honors/package.scala
    */
-  def firstMissingPositiveNumber(xs: Array[Int]): Int = {
-    def swap(i: Int, j: Int): Unit = {
-      if (i != j) {
-        val tmp = xs(i)
-        xs(i) = xs(j)
-        xs(j) = tmp
-      }
-    }
-
-    var hi = 0
-    var mid = 0
-    var lo = xs.length - 1
-    val pivot = 0
-
-    while (mid <= lo) {
-      if (xs(mid) > pivot) {
-        swap(mid, hi)
-        mid += 1
-        hi += 1
-      } else if (xs(mid) < pivot) {
-        swap(mid, lo)
-        // don't increment mid yet since we don't know anything about the element that ended up there
-        lo -= 1
-      } else mid += 1
-    }
-
-    // if xs(lo) < 0, there are no positive numbers in the array, otherwise lo points to the last non-negative number
-    assert(!(0 until lo).exists(xs(_) < pivot),
-      s"All elements on the left of index: $lo must be >= $pivot, ${xs.deep}"
-    )
-    assert(!(hi + 1 until xs.length).exists(xs(_) > pivot),
-      s"All elements on the right of index: $hi must be <= $pivot, ${xs.deep}"
-    )
-
-    (0 to lo)
-      .filter(i => xs(i) > 0)
-      .foreach { i =>
-        val x = math.abs(xs(i))
-        // may already be negative if there're duplicates in the array
-        if (xs(x - 1) > 0) xs(x - 1) *= -1
-      }
-
-    (0 to lo)
-      .find(i => i >= 0 && xs(i) >= 0)
-      .getOrElse(0) + 1
-  }
 
   /*
    * Given an array of integers, return a new array such that each element at index i of the new array is the product
@@ -507,51 +452,29 @@ package object arrays {
   }
 
   /*
-  * You are given an array of non-negative integers that represents a two-dimensional elevation map where each element
-  * is unit-width wall and the integer is the height. Suppose it will rain and all spots between two walls get filled
-  * up.
-  * Compute how many units of water remain trapped on the map in O(N) time and O(1) space.
-  *
-  * For example, given the input [2, 1, 2], we can hold 1 unit of water in the middle.
-  * Given the input [3, 0, 1, 3, 0, 5], we can hold 3 units in the first index, 2 in the second, and 3 in the fourth
-  * index (we cannot hold 5 since it would run off to the left), so we can trap 8 units of water.
-  *
-  * ANSWER: See rainwater.png for a visual explanation of the problem. We make a crucial observation that the amount
-  * of rain water trapped between two buildings (can equivalently be thought of as water trapped on top of a building)
-  * depends on the minimum of the maximum heights on either side of the building. Any more than the height of the
-  * minimum, and the water will run off. The amount of water trapped is the difference between the heights of the min
-  * height building and the one in question.
-  * A naive way to solve this problem would be to find the building with the max height on either side of a building.
-  * That, however, yields a O(n^2) algorithm. Can we do better?
-  *
-  * What if we start moving inward from the boundaries, keeping track of the respective maximum heights? If the current
-  * building on the left is shorter than the one on the right, the amount of water trapped depends only on the
-  * building with the max height on the left. This is perhaps not very intuitive, but it is true for all elevation
-  * maps.
-  *
-  * Similarly, if a building is shorter than the one on its left, the amount of water trapped on it depends solely on
-  * the building with the max height on its right.
-  *
-  * If a building is taller than the one on its left or right, we can't tell anything about the amount of water trapped
-  * on it.
-  *
-  * The following code follows from the explanation above.
-  */
-  def rainWaterTrapped(xs: IndexedSeq[Int]): Int = {
-    def loop(l: Int, r: Int, lMax: Int, rMax: Int): Int = {
-      if (l <= r) {
-        val left = xs(l)
-        val right = xs(r)
-        if (left < right) {
-          val max = math.max(lMax, left)
-          (max - left) + loop(l + 1, r, max, rMax)
-        } else {
-          val max = math.max(rMax, right)
-          (max - right) + loop(l, r - 1, lMax, max)
-        }
-      } else 0
-    }
+   * You are given an array of non-negative integers that represents a two-dimensional elevation map where each element
+   * is unit-width wall and the integer is the height. Suppose it will rain and all spots between two walls get filled
+   * up.
+   * Compute how many units of water remain trapped on the map in O(N) time and O(1) space.
+   *
+   * For example, given the input [2, 1, 2], we can hold 1 unit of water in the middle.
+   * Given the input [3, 0, 1, 3, 0, 5], we can hold 3 units in the first index, 2 in the second, and 3 in the fourth
+   * index (we cannot hold 5 since it would run off to the left), so we can trap 8 units of water.
+   *
+   * ANSWER: See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/honors/package.scala
+   */
 
-    loop(0, xs.size - 1, -1, -1)
+  /*
+   * Transpose a matrix.
+   *
+   * ANSWER: Row becomes column, or column becomes row
+   */
+  def transposeMatrix(xs: Array[Array[Int]]): Unit = {
+    val n = xs.length
+    for (layer <- 0 until n; i <- layer + 1 until n) {
+      val tmp = xs(layer)(i)
+      xs(layer)(i) = xs(i)(layer)
+      xs(i)(layer) = tmp
+    }
   }
 }

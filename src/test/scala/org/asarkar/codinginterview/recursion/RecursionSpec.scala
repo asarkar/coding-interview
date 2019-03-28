@@ -70,4 +70,12 @@ class RecursionSpec extends FlatSpec with TableDrivenPropertyChecks {
       (0, 0)
     ) shouldBe 7
   }
+
+  it should "generate all valid combinations of n-pairs of parentheses" in {
+    combineParenthesis(0) shouldBe empty
+    combineParenthesis(-1) shouldBe empty
+    combineParenthesis(1) should contain theSameElementsAs Seq("()")
+    combineParenthesis(2) should contain theSameElementsAs Seq("(())", "()()")
+    combineParenthesis(3) should contain theSameElementsAs Seq("((()))", "(()())", "(())()", "()(())", "()()()")
+  }
 }

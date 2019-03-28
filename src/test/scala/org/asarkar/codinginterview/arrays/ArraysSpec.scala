@@ -110,13 +110,6 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
     )) should contain theSameElementsInOrderAs Seq(1)
   }
 
-  it should "find the first missing positive number" in {
-    firstMissingPositiveNumber(Array(3, 4, -1, 1)) shouldBe 2
-    firstMissingPositiveNumber(Array(1, 2, 0)) shouldBe 3
-    firstMissingPositiveNumber(Array(-1, -2, -3)) shouldBe 1
-    firstMissingPositiveNumber(Array(-1, -2, 0)) shouldBe 1
-  }
-
   it should "find the lengths of video segments" in {
     segmentLengths(Seq('a', 'b', 'c', 'd')) should contain theSameElementsInOrderAs Seq.fill(4)(1)
     segmentLengths(Seq('a', 'b', 'c', 'a')) should contain theSameElementsAs Seq(4)
@@ -136,18 +129,6 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
 
     forAll(data) { (xs, k, maximums) =>
       maxValuesOfSubarrays(xs, k) should contain theSameElementsInOrderAs maximums
-    }
-  }
-
-  it should "compute how many units of water remain trapped on the map" in {
-    val data = Table(
-      ("map", "water"),
-      (IndexedSeq(2, 1, 2), 1),
-      (IndexedSeq(3, 0, 1, 3, 0, 5), 8),
-      (IndexedSeq(7, 1, 4, 0, 2, 8, 6, 3, 5), 23)
-    )
-    forAll(data) { (map, water) =>
-      rainWaterTrapped(map) shouldBe water
     }
   }
 }

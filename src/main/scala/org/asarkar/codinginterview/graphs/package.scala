@@ -1,47 +1,8 @@
 package org.asarkar.codinginterview
 
-import scala.annotation.tailrec
+import scala.collection.mutable
 
 package object graphs {
-
-  def isArbitragePossible(rates: IndexedSeq[IndexedSeq[Double]]): Boolean = {
-    val n = rates.size
-    // dp[i][j] is the distance between the source and vertex j using no more than i edges
-    // when i = 0, we can only go from the source to the source using the empty edge (length zero)
-    val dp = Array.tabulate[Double](2, n)((i, v) => if (i == 0 && v == 0) 0d else Double.PositiveInfinity)
-
-    val negLogRates = rates
-      .map(_.map { r =>
-        assert(r.notApproxEquals(0.0d), "Exchange rate must be a positive decimal")
-        -math.log(r)
-      })
-
-    @tailrec
-    def hasNegCycle(i: Int, v: Int): Boolean = {
-      if (i <= n) {
-        val cur = i % dp.length
-        val prev = cur ^ 1
-        dp(cur)(v) = math.min(
-          dp(prev)(v),
-          (0 until n)
-            .filterNot(_ == v)
-            .map(w => dp(prev)(w) + negLogRates(w)(v))
-            .min
-        )
-        if (i == n && dp(cur)(v).notApproxEquals(dp(prev)(v))) true
-        else if (v < n - 1) hasNegCycle(i, v + 1)
-        else hasNegCycle(i + 1, 0)
-      } else false
-    }
-
-    hasNegCycle(1, 0)
-  }
-
-  implicit val precision: Precision = Precision(0.01d)
-
-  implicit class DoubleOps(val d: Double) extends AnyVal {
-    def notApproxEquals(other: Double)(implicit p: Precision): Boolean = (d - other).abs >= p.p
-  }
 
   /*
    * Suppose you are given a table of currency exchange rates, represented as a 2D array. Determine whether there is a
@@ -67,7 +28,75 @@ package object graphs {
    * Since we are only interested in whether or not a negative cycle exists, not the actual shortest path (if any),
    * we don't need to store all values of i, just two (the current and the previous rows).
    *
-   * Since this is a dense graph, time complexity is O(n^3). Space complexity is O(n).
+   * See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/honors/package.scala
    */
-  case class Precision(p: Double)
+
+  /*
+   * Given an unordered list of flights taken by someone, each represented as (origin, destination) pairs, and a
+   * starting airport, compute the person's itinerary. If no such itinerary exists, return null. If there are multiple
+   * possible itineraries, return the lexicographically smallest one. All flights must be used in the itinerary.
+   *
+   * For example, given the list of flights [('SFO', 'HKO'), ('YYZ', 'SFO'), ('YUL', 'YYZ'), ('HKO', 'ORD')] and
+   * starting airport 'YUL', you should return the list ['YUL', 'YYZ', 'SFO', 'HKO', 'ORD'].
+   *
+   * Given the list of flights [('SFO', 'COM'), ('COM', 'YYZ')] and starting airport 'COM', you should return null.
+   *
+   * Given the list of flights [('A', 'B'), ('A', 'C'), ('B', 'C'), ('C', 'A')] and starting airport 'A', you should
+   * return the list ['A', 'B', 'C', 'A', 'C'] even though ['A', 'C', 'A', 'B', 'C'] is also a valid itinerary.
+   * However, the first one is lexicographically smaller.
+   *
+   * ANSWER: The problem is basically asking to find an Eulerian path in a directed graph, starting from the given
+   * vertex. We represent the graph as an adjacency list that we build from the given flights.
+   *
+   * For the existence of Eulerian paths, it is necessary that zero or two vertices have an odd degree, and the rest
+   * have even degree. It intuitively makes sense; the start vertex should have indegree 0 and outdegree 1, and the
+   * end vertex should have indegree 1 and outdegree 0. All other vertices should have indegree = outdegree, so that
+   * it's not possible to get stuck at a vertex. If there are no vertices of odd degree, all Eulerian paths are
+   * circuits, which for this problem, is not applicable.
+   *
+   * We check if the start node satisfies the condition, outdegree - indegree = 1, and if not, don't even bother to
+   * search. We can also verify if an Eulerian path exists for the given graph, but since the search takes O(|E|) time
+   * anyway, we just do the search instead and see what it tells us.
+   *
+   * The search is simply DFS from the starting node.
+   * We account for the fact that the end vertex is not in the flight map, since there are no outgoing edges from it.
+   *
+   * In the end, we simply check if the path we found has the same number of edges as the input.
+   *
+   * Couple of good, but somewhat slow, YouTube videos.
+   * Existence of Eulerian Paths and Circuits https://www.youtube.com/watch?v=xR4sGgwtR2I
+   * Eulerian Path Algorithm https://www.youtube.com/watch?v=8MpoO2zA2l4
+   */
+  def computeItinerary(flights: Seq[(String, String)], start: String): Seq[String] = {
+    var indegree = 0
+    val flightMap = flights
+      .foldLeft(mutable.Map.empty[String, mutable.SortedSet[String]]) { (acc, flight) =>
+        val (from, to) = flight
+        if (to == start) indegree += 1
+        acc.updated(from, acc.getOrElse(from, mutable.SortedSet.empty[String]) += to)
+      }
+
+    def dfs(from: String): Seq[String] = {
+      flightMap.get(from) match {
+        case Some(to) =>
+          to.headOption match {
+            case Some(first) =>
+              assert(to.remove(first))
+              if (to.isEmpty) flightMap.remove(from)
+
+              first +: dfs(first)
+            case _ => Seq.empty[String]
+          }
+        case _ => Seq.empty[String]
+      }
+    }
+
+    val outdegree = flightMap.get(start).map(_.size).getOrElse(0)
+
+    if (outdegree - indegree != 1) Seq.empty[String]
+    else dfs(start) match {
+      case xs if xs.size == flights.size => start +: xs
+      case _ => Seq.empty[String]
+    }
+  }
 }

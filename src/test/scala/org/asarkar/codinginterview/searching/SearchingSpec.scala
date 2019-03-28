@@ -23,4 +23,10 @@ class SearchingSpec extends FlatSpec with TableDrivenPropertyChecks {
       taxes(income, brackets) shouldBe (tax +- 0.1d)
     }
   }
+
+  it should "count the number of integers in a range" in {
+    countInRange(IndexedSeq(1, 3, 5, 5, 7, 11, 11, 20), 5, 15) shouldBe 5
+    countInRange(IndexedSeq(1, 2), 5, 15) shouldBe 0
+    countInRange(IndexedSeq.empty[Int], 5, 15) shouldBe 0
+  }
 }

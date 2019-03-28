@@ -92,4 +92,80 @@ package object bintree {
 
     loop(root, null)
   }
+
+  /*
+   * Given pre-order and in-order traversals of a binary tree, write a function to reconstruct the tree.
+   *
+   * For example, given the following preorder traversal:
+   * [a, b, d, e, c, f, g]
+   * And the following inorder traversal:
+   * [d, b, e, a, f, c, g]
+   *
+   * You should return the following tree:
+   *       a
+   *   +-------+
+   *   b       c
+   * +---+   +---+
+   * d   e   f   g
+   *
+   * ANSWER: Notice that the first element of the preorder is the root. If we find the root in the inorder, all elements
+   * on its left are in the left subtree, and all elements on its right are in the right subtree.
+   * We recursively build the left and right subtrees, keeping track of the roots. The index of the root of the left
+   * subtree is one more than the index of the current root in the preorder (by definition). The root of the right
+   * subtree is the number of elements in the left subtree, plus one (for the root); its index is thus equal to the
+   * size of the left subtree.
+   */
+
+  def reconstruct1[T](pre: IndexedSeq[T], in: IndexedSeq[T]): Node[T] = {
+    val inorderIndexMap = in.zipWithIndex.toMap
+
+    // builds the tree contained between in[left..right]. returns the root and the size of the newly built tree
+    def buildTree(left: Int, right: Int, preIdx: Int): (Node[T], Int) = {
+      if (left == right) (new Node[T](null, null, in(left)), preIdx + 1)
+      else {
+        val mid = inorderIndexMap(pre(preIdx))
+        val (l, x) = buildTree(left, mid - 1, preIdx + 1)
+        val (r, y) = buildTree(mid + 1, right, x)
+        (new Node[T](l, r, in(mid)), y)
+      }
+    }
+
+    val (root, size) = buildTree(0, in.size - 1, 0)
+    assert(
+      size == pre.size,
+      s"Size of the reconstructed tree: $size doesn't match the given number of vertices: ${pre.size}"
+    )
+    root
+  }
+
+  /*
+   * Suppose an arithmetic expression is given as a binary tree. Each leaf is an integer and each internal node is one
+   * of '+', '-', '∗', or '/'.
+   * Given the root to such a tree, write a function to evaluate it.
+   *
+   * For example, given the following tree:
+   *
+   *      *
+   *   +-----+
+   *   |     |
+   * +-+-+ +-+-+
+   * 3   2 4   5
+   *
+   * You should return 45, as it is (3 + 2) * (4 + 5).
+   */
+  def eval(root: Node[Character]): Double = {
+    if (root == null) 0
+    else if (Character.isDigit(root.getDatum)) root.getDatum.toChar.asDigit
+    else {
+      val left = eval(root.getLeft)
+      val right = eval(root.getRight)
+
+      root.getDatum.toChar match {
+        case '+' => left + right
+        case '-' => left - right
+        case '*' => left * right
+        case '/' if right != 0d => (1d * left) / right
+      }
+    }
+  }
 }

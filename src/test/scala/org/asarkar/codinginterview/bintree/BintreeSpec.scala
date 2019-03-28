@@ -151,4 +151,38 @@ class BintreeSpec extends FlatSpec {
     sndLargest should not be null
     sndLargest shouldBe 20
   }
+
+  it should "iterate a BST" in {
+    val nine = new Node[Integer](null, null, 9)
+    val twenty = new Node[Integer](null, null, 20)
+    val fifteen = new Node[Integer](nine, twenty, 15)
+    val three = new Node[Integer](null, null, 3)
+    val seven = new Node[Integer](three, fifteen, 7)
+
+    new BSTIterator(seven).toList should contain theSameElementsInOrderAs Seq(3, 7, 9, 15, 20)
+  }
+
+  it should "reconstruct a binary tree given the pre-order and in-order traversals" in {
+    val in1 = IndexedSeq[Character]('d', 'b', 'e', 'a', 'f', 'c', 'g')
+    val a: Node[Character] = reconstruct1(IndexedSeq('a', 'b', 'd', 'e', 'c', 'f', 'g'), in1)
+
+    BinTrees.morrisInorder[Character](a).asScala should contain theSameElementsInOrderAs in1
+
+    val in2 = IndexedSeq[Integer](10, 30, 40, 50, 60, 70, 90)
+    val b: Node[Integer] = reconstruct1(IndexedSeq(50, 30, 10, 40, 70, 60, 90), in2)
+
+    BinTrees.morrisInorder[Integer](b).asScala should contain theSameElementsInOrderAs in2
+  }
+
+  it should "evaluate a binary tree" in {
+    val three = new Node[Character](null, null, '3')
+    val two = new Node[Character](null, null, '2')
+    val plus1 = new Node[Character](three, two, '+')
+    val four = new Node[Character](null, null, '4')
+    val five = new Node[Character](null, null, '5')
+    val plus2 = new Node[Character](four, five, '+')
+    val multiply = new Node[Character](plus1, plus2, '*')
+
+    eval(multiply) shouldBe (45d +- 0.001d)
+  }
 }

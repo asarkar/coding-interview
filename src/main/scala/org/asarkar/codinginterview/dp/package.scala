@@ -304,4 +304,61 @@ package object dp {
 
     reconstruct(0, n - 1, minInsertions, 0)
   }
+
+  /*
+   * Given a list of integers S and a target number k, write a function that returns a subset of S that adds up to k.
+   * If such a subset cannot be made, then return null.
+   *
+   * Integers can appear more than once in the list. You may assume all numbers in the list are positive.
+   *
+   * For example, given S = [12, 1, 61, 5, 9, 2] and k = 24, return [12, 9, 2, 1] since it sums up to 24.
+   *
+   * ANSWER: This problem exhibits optimal substructure, and overlapping problems, so we will use dynamic programming
+   * to solve it.
+   *
+   * Optimal substructure: If the integer in the i-th position (a[i - 1]) is included in an optional solution, then
+   * any subset up to, and possibly including, a[i - 2] must add up to j - a[i - 1].
+   * On the other hand, there are two cases where a[i - 1] can't be included in an optional solution:
+   * - If it's greater than j (obviously).
+   * - Even if it's smaller than j, it's possible that the some subset of the first i - 1 integers adds up to j already.
+   *
+   * Let dp[i][j] be true if some subset of the first i integers exactly adds up to j, false otherwise.
+   * Since the empty set is a subset of all such subsets, d[0][0] is true. The following code follows naturally.
+   */
+  def subsetSum(xs: IndexedSeq[Int], k: Int): Seq[Int] = {
+    val dp = Array.tabulate[Boolean](xs.size + 1, k + 1) { (i, j) => i == 0 && j == 0 }
+
+    for (i <- 1 to xs.size; j <- 1 to k) {
+      val cur = xs(i - 1)
+
+      dp(i)(j) =
+        if (cur > j) dp(i - 1)(j)
+        else dp(i - 1)(j) || dp(i - 1)(j - cur)
+    }
+
+    Iterator
+      .iterate((xs.size, k, -1)) {
+        case (i, j, _) =>
+          if (i == 0 || dp(i)(j) == dp(i - 1)(j)) (i - 1, j, -1) // xs(i - 1) not included
+          else (i - 1, j - xs(i - 1), xs(i - 1)) // xs(i - 1) included
+      }
+      .takeWhile {
+        case (i, j, _) => dp.lift(i).exists(_.exists(y => y))
+      }
+      .filter(_._3 > 0)
+      .map(_._3)
+      .toSeq
+  }
+
+  /*
+   * Given an array of numbers, find the maximum sum of any contiguous subarray of the array.
+   *
+   * For example, given the array [34, -50, 42, 14, -5, 86], the maximum sum would be 137, since we would take elements
+   * 42, 14, -5, and 86.
+   * Given the array [-5, -1, -8, -9], the maximum sum would be 0, since we would not take any elements.
+   *
+   * Do this in O(N) time.
+   *
+   * ANSWER: See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/dp/package.scala
+   */
 }

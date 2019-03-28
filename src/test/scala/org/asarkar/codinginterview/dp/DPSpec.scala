@@ -76,4 +76,9 @@ class DPSpec extends FlatSpec with TableDrivenPropertyChecks {
       makePalindromeByFewestEdits(word) shouldBe palindrome
     }
   }
+
+  it should "find subset sum" in {
+    subsetSum(IndexedSeq(12, 1, 61, 5, 9, 2), 24).sum shouldBe 24
+    subsetSum(IndexedSeq(7, 3, 2, 5, 8), 18).sum shouldBe 18
+  }
 }

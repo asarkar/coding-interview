@@ -2,22 +2,26 @@ package org.asarkar.codinginterview.graphs
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
-import org.scalatest.prop.TableDrivenPropertyChecks
 
-class GraphsSpec extends FlatSpec with TableDrivenPropertyChecks {
-  "graphs" should "determine whether there is a possible arbitrage" in {
-    val data = Table(
-      ("rates", "arbitrage"),
-      (IndexedSeq(
-        IndexedSeq(1d, 0.7d, 13.57d),
-        IndexedSeq(1.43d, 1d, 9.5d),
-        IndexedSeq(0.16d, 0.11d, 1d)
-      ), true)
-    )
+class GraphsSpec extends FlatSpec {
+  "graphs" should "compute an itinerary" in {
+    computeItinerary(Seq(
+      ("SFO", "HKO"),
+      ("YYZ", "SFO"),
+      ("YUL", "YYZ"),
+      ("HKO", "ORD")
+    ), "YUL") should contain theSameElementsInOrderAs Seq("YUL", "YYZ", "SFO", "HKO", "ORD")
 
-    forAll(data) { (rates, arbitrage) =>
-      println(isArbitragePossible(rates))
-      isArbitragePossible(rates) shouldBe arbitrage
-    }
+    computeItinerary(Seq(
+      ("SFO", "COM"),
+      ("HKO", "ORD")
+    ), "COM") shouldBe empty
+
+    computeItinerary(Seq(
+      ("A", "B"),
+      ("A", "C"),
+      ("B", "C"),
+      ("C", "A")
+    ), "A") should contain theSameElementsInOrderAs Seq("A", "B", "C", "A", "C")
   }
 }

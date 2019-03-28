@@ -66,4 +66,28 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
     runLengthDecoding("4A3B2C1D2A") shouldBe "AAAABBBCCDAA"
     runLengthDecoding("1A") shouldBe "A"
   }
+
+  it should "determine if two strings are isomorphic" in {
+    val data = Table(
+      ("s1", "s2", "isomorphic"),
+      ("add", "egg", true),
+      ("a", "b", true),
+      ("", "", true),
+      ("foo", "bar", false),
+      ("abcabc", "xbexyz", false),
+      ("abcd", "aabb", false),
+      ("abcabc", "xyzxyz", true),
+      ("aba", "baa", false)
+    )
+
+    forAll(data) { (s1, s2, isomorphic) =>
+      isIsomorphic(s1, s2) shouldBe isomorphic
+    }
+  }
+
+  it should "find the longest palindromic substring" in {
+    longestPalindromicSubstr("aabcdcb") shouldBe "bcdcb"
+    longestPalindromicSubstr("bananas") shouldBe "anana"
+    longestPalindromicSubstr("ABABABA") shouldBe "ABABABA"
+  }
 }

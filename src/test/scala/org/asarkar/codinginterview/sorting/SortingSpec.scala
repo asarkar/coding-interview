@@ -36,4 +36,9 @@ class SortingSpec extends FlatSpec {
     partitionRGB(colors)
     colors shouldBe colors.sorted.reverse
   }
+
+  it should "count inversions" in {
+    numInversions(IndexedSeq(2, 4, 1, 3, 5)) shouldBe 3
+    numInversions(IndexedSeq(5, 4, 3, 2, 1)) shouldBe 10
+  }
 }

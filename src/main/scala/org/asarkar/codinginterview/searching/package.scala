@@ -66,4 +66,27 @@ package object searching {
     println(s"Taxable income: $income, bracket: $br, taxes: $tx")
     tx
   }
+
+  /*
+   * Given a sorted array of integers, and a range [lo, hi], return the number of integers that fall in the given range.
+   * The array may contain duplicates.
+   */
+  def countInRange(xs: IndexedSeq[Int], lo: Int, hi: Int): Int = {
+    @tailrec
+    def find(target: Int, low: Int, high: Int, cmp: (Int, Int) => Boolean): Int = {
+      if (high <= low) low
+      else {
+        val mid = low + (high - low) / 2
+
+        if (cmp(xs(mid), target)) find(target, low, mid - 1, cmp)
+        else find(target, mid + 1, high, cmp)
+      }
+    }
+
+    val n = xs.length - 1
+    val left = find(lo, 0, n, Ordering[Int].gteq)
+    val right = find(hi, 0, n, Ordering[Int].gt)
+
+    right - left
+  }
 }
