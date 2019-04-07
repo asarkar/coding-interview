@@ -15,4 +15,16 @@ package object design {
    * If we are not keeping track of the number of orders, we can maintain a pointer that gets increments each time
    * we insert a new element. When it reaches the end of the array, it is reset to zero.
    */
+
+  /*
+   * Implement a file syncing algorithm for two computers over a low-bandwidth network. What if we know the files in
+   * the two computers are mostly the same?
+   *
+   * ANSWER: We can build Merkle trees for the two computers, and then transmit only those files that have changed.
+   * In the worst case, every file could have changed, in which case, we need to compare every node in the two trees.
+   * That would take linear time in terms of the number of nodes in the smaller tree.
+   * To compute the hash, we could do something similar to what Git does: use the content for files, and name and
+   * hash of children by lexicographical ordering of their names for directories.
+   * See https://blog.asarkar.org/coding-interview-curated/#hashing for some interesting references on Merkle trees.
+   */
 }

@@ -29,4 +29,21 @@ class SearchingSpec extends FlatSpec with TableDrivenPropertyChecks {
     countInRange(IndexedSeq(1, 2), 5, 15) shouldBe 0
     countInRange(IndexedSeq.empty[Int], 5, 15) shouldBe 0
   }
+
+  it should "find an element in a sorted rotated array" in {
+    val data = Table(
+      ("xs", "x", "i"),
+      (IndexedSeq(13, 18, 25, 2, 8, 10), 8, 4),
+      (IndexedSeq(13, 18, 25, 2, 8, 10), 2, 3),
+      (IndexedSeq(25, 2, 8, 10, 13, 18), 8, 2),
+      (IndexedSeq(8, 10, 13, 18, 25, 2), 8, 0),
+      (IndexedSeq(5, 6, 7, 8, 9, 10, 1, 2, 3), 3, 8),
+      (IndexedSeq(5, 6, 7, 8, 9, 10, 1, 2, 3), 30, -1),
+      (IndexedSeq(30, 40, 50, 10, 20), 10, 3)
+    )
+
+    forAll(data) { (xs, x, i) =>
+      searchInSortedRotatedArray(xs, x) shouldBe i
+    }
+  }
 }

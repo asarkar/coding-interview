@@ -4,7 +4,7 @@ import scala.util.Random
 
 class Minesweeper(val size: Int, val numMines: Int) {
   private val board = Array.ofDim[Int](size, size)
-  private val end = size * size
+  private val end = size * size - 1
 
   def numMinesAround(row: Int, col: Int): Int = board(row)(col)
 

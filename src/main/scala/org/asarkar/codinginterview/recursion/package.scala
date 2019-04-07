@@ -311,4 +311,70 @@ package object recursion {
 
     loop("", 0, 0)
   }
+
+  /*
+   * Given an undirected graph represented as an adjacency matrix and an integer k, write a function to determine
+   * whether each vertex in the graph can be colored such that no two adjacent vertices share the same color using at
+   * most k colors.
+   *
+   * ANSWER: Vertex coloring is in general a NP-hard problem. For small |V|, we may use backtracking to find a solution.
+   * Without any constraints, each vertex can be colored in k ways, and there are n vertices, so the number of possible
+   * combinations is O(k^n). Even with the constraint that no two adjacent vertices may share the same color, in the
+   * worst case, we may backtrack k times for each vertex, and if the graph is complete, for each of the k iterations,
+   * we try n - 1 neighbors. Thus time complexity is still O(k^n).
+   *
+   * The algorithm is as follows:
+   *
+   * for v in vertices
+   *   if it's safe to assign color c
+   *     assign color c to v, and recursively color the rest of the vertices
+   *     if successful, return true
+   *     else uncolor v and try the next color
+   *   else try the next color
+   * if all vertices have been colored, return true
+   *
+   * For k = 2, the problem becomes determining whether the given graph is bipartite or not.  Such a coloring of the
+   * vertices of a bipartite graph means that the graph can be drawn with the red vertices on the left and the blue
+   * vertices on the right such that all edges go from left to right.
+   *
+   * Testing whether a graph is bipartite is easy. Color the first vertex blue, and then do a depth-first search of the
+   * graph. Whenever we discover a new, uncolored vertex, color it opposite that of its parent, since the same color
+   * would cause a clash. If we ever find an edge where both vertices have been colored identically, then the graph
+   * cannot be bipartite. Otherwise, this coloring will be a 2-coloring, and it is constructed in O(n + m) time.
+   *
+   * Application of vertex coloring:
+   * Vertex coloring models to a number of scheduling problems. Given a set of jobs need to be assigned to time slots,
+   * each job requires one such slot. Jobs can be scheduled in any order, but pairs of jobs may be in conflict in the
+   * sense that they may not be assigned to the same time slot, for example because they both rely on a shared resource.
+   * The corresponding graph contains a vertex for every job and an edge for every conflicting pair of jobs.
+   * The chromatic number of the graph is exactly the minimum makespan, the optimal time to finish all jobs without
+   * conflicts.
+   *
+   * Other examples can be found in this YouTube video: https://www.youtube.com/watch?v=y4RAYQjKb5Y
+   */
+  def isColorable(g: IndexedSeq[IndexedSeq[Boolean]], k: Int): Boolean = {
+    val uncolored = -1
+    val n = g.size
+    val colors = Array.fill[Int](n)(uncolored)
+
+    def isUnsafe(v: Int, c: Int): Boolean = {
+      (0 until v)
+        .exists(w => g(w)(v) && colors(w) == c)
+    }
+
+    def color(v: Int, c: Int): Boolean = {
+      if (v >= n) true
+      else if (isUnsafe(v, c)) color(v, c + 1)
+      else {
+        colors(v) = c
+        if (color(v + 1, 0)) true
+        else {
+          colors(v) = uncolored
+          color(v, c + 1)
+        }
+      }
+    }
+
+    color(0, 0)
+  }
 }

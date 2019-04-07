@@ -90,4 +90,14 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
     longestPalindromicSubstr("bananas") shouldBe "anana"
     longestPalindromicSubstr("ABABABA") shouldBe "ABABABA"
   }
+
+  it should "shorten URLs" in {
+    val url = "https://www.scala-lang.org/files/archive/api/current/scala/"
+    val u1 = urlShortener1(url)
+    val u2 = urlShortener2(url)
+
+    u1.length shouldBe 6
+    u2.length shouldBe 6
+    u2.forall(Character.isLowerCase) shouldBe true
+  }
 }

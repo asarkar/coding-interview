@@ -361,4 +361,30 @@ package object dp {
    *
    * ANSWER: See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/dp/package.scala
    */
+
+  /*
+   * Given a string s and an integer k, break up the string into multiple lines such that each line has a length of k
+   * or less. You must break it up so that words don't break across lines. Each line has to have the maximum possible
+   * amount of words. If there's no way to break the text up, then return null.
+   *
+   * You can assume that there are no spaces at the ends of the string and that there is exactly one space between each
+   * word.
+   *
+   * For example, given the string "the quick brown fox jumps over the lazy dog" and k = 10, you should return:
+   * ["the quick", "brown fox", "jumps over", "the lazy", "dog"]. No string in the list has a length of more than 10.
+   *
+   * ANSWER: See https://github.com/asarkar/epi/tree/master/src/main/scala/org/asarkar/epi/dp/package.scala
+   */
+
+  /*
+   * Given a multiset of integers, return whether it can be partitioned into two subsets whose sums are the same.
+   *
+   * For example, given the multiset {15, 5, 20, 10, 35, 15, 10}, it would return true, since we can split it up into
+   * {15, 5, 10, 15, 10} and {20, 35}, which both add up to 55.
+   *
+   * Given the multiset {15, 5, 20, 10, 35}, it would return false, since we can't split it up into two subsets that
+   * add up to the same sum.
+   *
+   * ANSWER: We simply find a subset that adds up to k/2. See subsetSum.
+   */
 }

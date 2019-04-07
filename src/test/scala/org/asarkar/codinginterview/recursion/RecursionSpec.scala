@@ -78,4 +78,14 @@ class RecursionSpec extends FlatSpec with TableDrivenPropertyChecks {
     combineParenthesis(2) should contain theSameElementsAs Seq("(())", "()()")
     combineParenthesis(3) should contain theSameElementsAs Seq("((()))", "(()())", "(())()", "()(())", "()()()")
   }
+
+  it should "determine if the graph coloring problem is solvable for the given graph and k colors" in {
+    val g = IndexedSeq(
+      IndexedSeq(false, true, false, true),
+      IndexedSeq(true, false, true, true),
+      IndexedSeq(false, true, false, true),
+      IndexedSeq(true, true, true, false)
+    )
+    isColorable(g, 3) shouldBe true
+  }
 }

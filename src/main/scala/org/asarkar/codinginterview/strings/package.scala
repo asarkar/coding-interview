@@ -1,8 +1,11 @@
 package org.asarkar.codinginterview
 
+import java.nio.charset.StandardCharsets
 import java.util.Locale
+import java.util.stream.Collectors
 
 import scala.annotation.tailrec
+import scala.util.Random
 
 package object strings {
   /*
@@ -373,5 +376,33 @@ package object strings {
     }
 
     expand(0, 0)
+  }
+
+  /*
+   * Implement a URL shortener with the following methods:
+   * - shorten(url), which shortens the url into a six-character alphanumeric string, such as zLg6wl.
+   * - restore(short), which expands the shortened string into the original url. If no such shortened string exists,
+   *   return null.
+   *
+   * Hint: What if we enter the same URL twice?
+   */
+  def urlShortener1(url: String): String = {
+    val bytes = Array.ofDim[Byte](6)
+    new Random().nextBytes(bytes)
+
+    new String(bytes, StandardCharsets.UTF_8)
+  }
+
+  def urlShortener2(url: String): String = {
+    val lo = 'a'.toInt
+    val hi = 'z'.toInt
+    new java.util.Random()
+      // the hard way of doing this is (int)(Math.random() * ((max - min) + 1)) + min
+      // Math.random() returns a random double between 0 (inclusive) and 1 (exclusive). Multiplying that by (max - min)
+      // makes the range 0 (inclusive) to max – min (exclusive). Adding min to that gives the range min (inclusive) to
+      // max (exclusive). Finally, to include max, we add 1 to the range.
+      .ints(6, lo, hi + 1)
+      .mapToObj(_.asInstanceOf[Integer].toChar.toString)
+      .collect(Collectors.joining())
   }
 }

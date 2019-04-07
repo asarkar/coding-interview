@@ -89,4 +89,27 @@ package object searching {
 
     right - left
   }
+
+  /*
+   * An sorted array of integers was rotated an unknown number of times.
+   * Given such an array, find the index of the element in the array in faster than linear time. If the element doesn't
+   * exist in the array, return null.
+   *
+   * For example, given the array [13, 18, 25, 2, 8, 10] and the element 8, return 4 (the index of 8 in the array).
+   * You can assume all the integers in the array are unique.
+   */
+  def searchInSortedRotatedArray(xs: IndexedSeq[Int], x: Int): Int = {
+    @tailrec
+    def search(lo: Int, hi: Int): Int = {
+      if (lo > hi) -1
+      else {
+        val mid = lo + (hi - lo) / 2
+        if (xs(mid) == x) mid
+        else if (x < xs(lo) || x > xs(mid)) search(mid + 1, hi)
+        else search(lo, mid - 1)
+      }
+    }
+
+    search(0, xs.size - 1)
+  }
 }
