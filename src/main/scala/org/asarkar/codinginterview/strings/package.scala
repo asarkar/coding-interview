@@ -5,6 +5,8 @@ import java.util.Locale
 import java.util.stream.Collectors
 
 import scala.annotation.tailrec
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
 package object strings {
@@ -404,5 +406,283 @@ package object strings {
       .ints(6, lo, hi + 1)
       .mapToObj(_.asInstanceOf[Integer].toChar.toString)
       .collect(Collectors.joining())
+  }
+
+  /*
+   * Given a string s and a non-empty string p, find all the start indices of p's anagrams in s.
+   * Strings consists of lowercase English letters only and the length of both strings s and p will not be larger
+   * than 20,100.
+   * The order of output does not matter.
+   *
+   * Example 1:
+   * Input: s: "cbaebabacd" p: "abc"
+   * Output: [0, 6]
+   * Explanation: The substring with start index = 0 is "cba", which is an anagram of "abc". The substring with start
+   * index = 6 is "bac", which is an anagram of "abc".
+   * Example 2:
+   * Input: s: "abab" p: "ab"
+   * Output: [0, 1, 2]
+   * Explanation: The substring with start index = 0 is "ab", which is an anagram of "ab". The substring with start
+   * index = 1 is "ba", which is an anagram of "ab". The substring with start index = 2 is "ab", which is an anagram
+   * of "ab".
+   *
+   * ANSWER: Let s.length = n and p.length = m. A naive way of solving this problem is to compare every m length
+   * substring of s (there are n - m + 1) with p after sorting both. Time complexity is O(nm log m). Can we do better?
+   *
+   * Observe that each consecutive m length substring of s only differs by a single character. Thus, if we are able to
+   * take advantage of the work done in the previous iteration, we can save time. Instead of sorting and comparing, we
+   * start by creating the frequency maps for p and the first m length substring of s. If the maps are equal, we add
+   * the first substring to the results. Then for each subsequent substring, we only update the entry for the character
+   * that moved out of the sliding window, and add the entry for the incoming character. If the resulting frequency map
+   * is equal to the one initially created for p, then we have found an anagram of p.
+   * If all characters in p are unique, outside the loop, we do O(m) work. The loop runs n - m times, and we go over a
+   * map of size m each time; overall time complexity is O(m) + O(nm - m^2). If m is small compared to n, the second
+   * term dominates and time complexity is O(n). If m is comparable to m, the first time dominates and time complexity
+   * is still O(n).
+   */
+  def findAnagrams(s: String, p: String): List[Int] = {
+    def freq(str: String): Map[Char, Int] = str
+      .map((_, 1))
+      .groupBy(_._1)
+      .mapValues(_.size)
+
+    val m = p.length
+    val a = s.take(m)
+    val x = freq(a)
+    val y = freq(p)
+    val z = y.toSet
+    val result = ListBuffer.empty[Int]
+    if (x == y) result.append(0)
+
+    (1 to s.length - m)
+      .foldLeft(x) { case (f1, i) =>
+        val prev = s(i - 1)
+        val f2 = if (f1(prev) == 1) f1 - prev else f1 + (prev -> (f1(prev) - 1))
+        val cur = s(i + m - 1)
+        val f3 = f2 + (cur -> (f2.getOrElse(cur, 0) + 1))
+
+        if (z.diff(f3.toSet).isEmpty)
+          result.append(i)
+        f3
+      }
+    result
+      .toList
+  }
+
+  /*
+   * Given a list of unique words, find all pairs of distinct indices (i, j) in the given list, so that the
+   * concatenation of the two words, i.e. words[i] + words[j] is a palindrome.
+   *
+   * ANSWER: words[i] + words[j] is a palindrome in one of the two cases:
+   * 1. They are of equal length, and one is the reverse of the other. Example, "abc" and "cba".
+   * 2. The reverse of the shorter string is a suffix of the longer one, and the remaining prefix is a palindrome.
+   *    Example, "abc" and "ddcba".
+   *
+   * Since the empty string is considered a palindrome, we can combine the above conditions into the second one.
+   *
+   * Thus, we need an algorithm for condition #2. If we build a Trie using the reverse strings, we can efficiently
+   * check for prefix matches. Once we have a match, to check whether the rest of the string is a palindrome or not,
+   * we store that information while building the Trie. Each node stores a list indices corresponding to the words
+   * in the input list if the rest of the string is a palindrome.
+   *
+   * The Trie for "abc" and "ddcba" would be as follows:
+   *
+   *     +--+a
+   *     +   +
+   *     c   b
+   *     +   +
+   *     +   c [1]
+   *     b   +
+   *     +   d
+   * [0] a   +
+   *         d [1]
+   *
+   * The algorithm is then simply finding the node where a word ends, and adding the pairs (index, other index) to
+   * the answer. Note that the order of elements in the pair is important.
+   *
+   * Time complexity: Let n be the number of words, and m the length of the longest word. Since we scan the rest of the
+   * string for each index position, we spend O(m^2) time inserting the word in the Trie. Finding it is O(m); thus,
+   * overall time complexity is O(nm + nm^2).
+   */
+  def palindromePairs(words: Seq[String]): Seq[(Int, Int)] = {
+    val trie = words
+      .zipWithIndex
+      .foldLeft(new PalindromePairTrie()) { case (tr, (w, i)) => tr += (w, i) }
+
+    words
+      .zipWithIndex
+      .flatMap { case (w, i) => trie.get(w) match {
+        case Some(node) => node.palin.filterNot(_ == i).map((i, _))
+        case _ => Seq.empty
+      }
+      }
+  }
+
+  /*
+   * The string "PAYPALISHIRING" is written in a zigzag pattern on a given number of rows like this:
+   * P   A   H   N
+   * A P L S I I G
+   * Y   I   R
+   *
+   * And then read line by line: "PAHNAPLSIIGYIR"
+
+   * Write the code that will take a string and make this conversion given a number of rows.
+   *
+   * ANSWER: Let m be the number of rows. Observe that for every m-th character, the direction is reversed. Also
+   * observe that when the index of the current character is an even multiple of m, the direction is changed downward,
+   * and when the index is an odd multiple of m, the direction is changed upward. With these observations, all we need
+   * to do is keep m buffers, and using the above logic, figure out which one to write to next.
+   *
+   * Time complexity: O(n), where n is the length of the input string.
+   */
+  def zigZag(s: String, numRows: Int): String = {
+    val m = numRows - 1
+    if (m == 0) s
+    else {
+      val rows = IndexedSeq.fill(numRows)(new StringBuilder)
+
+      Iterator.iterate((1, 0, 0)) { case (rowOffset, row, i) =>
+        val j = if (i % m == 0) {
+          if ((i / m) % 2 == 0) 1 else -1
+        } else rowOffset
+
+        (j, row + j, i + 1)
+      }
+        .takeWhile(x => s.isDefinedAt(x._3))
+        .foreach(x => rows(x._2).append(s(x._3)))
+
+      rows
+        .reduce((s1, s2) => s1.append(s2.toString()))
+        .toString()
+    }
+  }
+
+  /*
+   * Lexicographically least circular substring is the problem of finding the rotation of a string possessing the
+   * lowest lexicographical order of all such rotations. For example, the lexicographically minimal rotation of
+   * "bbaaccaadd" would be "aaccaaddbb".
+   *
+   * A O(n) time algorithm was proposed by Jean Pierre Duval (1983).
+   *
+   * Given two indices i and j, Duval's algorithm compares string segments of length j - i starting at i and j (called
+   * a "duel"). If (index + j - i) is greater than the length of the string, the segment is formed by wrapping around.
+   *
+   * For example, consider s = "baabbaba", i = 5 and j = 7. Since j - i = 2, the first segment starting at i = 5 is
+   * "ab". The second segment starting at j = 7 is constructed by wrapping around, and is also "ab".
+   * If the strings are lexicographically equal, like in the above example, we choose the one starting at i as the
+   * winner, which is i = 5.
+   *
+   * The above process repeated until we have a single winner. If the input string is of odd length, the last character
+   * wins without a comparison in the first iteration.
+   *
+   * Time complexity:
+   * The first iteration compares n strings each of length 1 (n/2 comparisons), the second iteration may compare n/2
+   * strings of length 2 (n/2 comparisons), and so on, until the i-th iteration compares 2 strings of length n/2
+   * (n/2 comparisons). Since the number of winners is halved each time, the height of the recursion tree is log(n),
+   * thus giving us a O(n log(n)) algorithm. For small n, this is approximately O(n).
+   *
+   * Space complexity is O(n) too, since in the first iteration, we have to store n/2 winners, second iteration n/4
+   * winners, and so on. (Wikipedia claims this algorithm uses constant space, I don't understand how).
+   *
+   * See https://blog.asarkar.org/coding-interview-curated/#strings for additional reference materials.
+   */
+  def lexicographicallyMinRotation(s: String): String = {
+    @tailrec
+    def duel(winners: Seq[Int]): String = {
+      if (winners.size == 1) s"${s.slice(winners.head, s.length)}${s.take(winners.head)}"
+      else {
+        val newWinners: Seq[Int] = winners
+          .sliding(2, 2)
+          .map {
+            case Seq(x, y) =>
+              val range = y - x
+              Seq(x, y)
+                .map { i =>
+                  val segment = if (s.isDefinedAt(i + range - 1)) s.slice(i, i + range)
+                  else s"${s.slice(i, s.length)}${s.take(s.length - i)}"
+                  (i, segment)
+                }
+                .reduce((a, b) => if (a._2 <= b._2) a else b)
+                ._1
+            case xs => xs.head
+          }
+          .toSeq
+        duel(newWinners)
+      }
+    }
+
+    duel(s.indices)
+  }
+
+  case class MaxXorTrie(children: mutable.Map[Char, MaxXorTrie] = mutable.Map.empty) {
+    def insert(str: String): Unit = {
+      @tailrec
+      def insert(i: Int, node: MaxXorTrie): Unit = {
+        if (str.isDefinedAt(i)) {
+          val ch = str(i)
+          if (!node.children.contains(ch)) node.children(ch) = MaxXorTrie()
+          insert(i + 1, node.children(ch))
+        }
+      }
+
+      insert(0, this)
+    }
+
+    def find(ch: Char): Option[MaxXorTrie] = children.get(ch)
+
+    override def toString: String = children.toString()
+  }
+
+  private implicit class IntString(x: Int) {
+    def toBinStr(width: Int): String = {
+      val bin = Integer.toBinaryString(x)
+      val numZeros = width - bin.length
+      s"""${"0" * numZeros}$bin"""
+    }
+  }
+
+  /*
+   * Given a non-empty array of numbers, a0, a1, a2, ..., where 0 <= ai < 2^31.
+   * Find the maximum result of ai XOR aj, where 0 <= i, j < n.
+   * Could you do this in O(n) runtime?
+   * Example:
+   * Input: [3, 10, 5, 25, 2, 8]
+   * Output: 28
+   * Explanation: The maximum result is 5 ^ 25 = 28
+   *
+   * ANSWER: We make three passes. In the first pass, we find the maximum number in the array, and calculate its length
+   * in binary; let's call it 'len'. For example, 25 = 11001, len = 5.
+   * In the second pass, we convert each number to a binary string of length 'len', and insert into a Trie.
+   * In the third and final pass, we go over each binary string (say 's') again, and for each bit, look for its
+   * opposite bit in the Trie. This is because we want as many '1's in the max XOR as possible, and by definition,
+   * the XOR of two bits is 1 only when they are different. If we find the opposite bit, then the XOR of 's'
+   * with the number(s) being traversed has a '1' at this position, so we calculate the decimal equivalent, and add to
+   * the running XOR. If we don't find the opposite bit, then the XOR of 's' has a '0' as this position, and we don't
+   * change the running XOR.
+   */
+  def maxXor(xs: IndexedSeq[Int]): Int = {
+    val root = MaxXorTrie()
+    val maxLen = Integer.toBinaryString(xs.max).length
+    val ys = xs
+      .map { i =>
+        val j = i.toBinStr(maxLen)
+        root.insert(j)
+        j
+      }
+
+    ys
+      .foldLeft(Int.MinValue) { case (max, bin) =>
+        val xor = bin
+          .zipWithIndex
+          .foldLeft((Option(root), 0)) { case ((node, j), (ch, i)) =>
+            val other = if (ch == '0') '1' else '0'
+            node.flatMap(_.find(other)) match {
+              case None => (node.flatMap(_.find(ch)), j)
+              case x => (x, (1 << (maxLen - 1 - i)) + j)
+            }
+          }
+          ._2
+        math.max(max, xor)
+      }
   }
 }

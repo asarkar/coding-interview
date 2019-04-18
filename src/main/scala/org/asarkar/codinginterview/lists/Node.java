@@ -1,7 +1,9 @@
 package org.asarkar.codinginterview.lists;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 public class Node<T> {
     Node<T> next;
@@ -21,20 +23,29 @@ public class Node<T> {
         }
     }
 
-    public Node(T datum) {
+    Node(T datum) {
         this(null, datum);
     }
 
-    public Node(Node<T> next, T datum) {
+    Node(Node<T> next, T datum) {
         this.next = next;
         this.datum = datum;
     }
 
-    public Node<T> getNext() {
-        return next;
+    public List<T> toList() {
+        Node<T> cur = this;
+        List<T> list = new ArrayList<>();
+
+        while (cur != null) {
+            list.add(cur.datum);
+            cur = cur.next;
+        }
+
+        return list;
     }
 
-    public T getDatum() {
-        return datum;
+    @Override
+    public String toString() {
+        return datum == null ? null : datum.toString();
     }
 }

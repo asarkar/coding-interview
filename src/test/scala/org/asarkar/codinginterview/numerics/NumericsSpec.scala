@@ -5,7 +5,7 @@ import org.scalatest.Matchers._
 
 class NumericsSpec extends FlatSpec {
   "numerics" should "compute first n Hamming numbers" in {
-    hamming(15).map(_.intValue()) should contain theSameElementsInOrderAs Seq(1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24)
+    hamming(15).map(_.toInt) should contain theSameElementsInOrderAs Seq(1, 2, 3, 4, 5, 6, 8, 9, 10, 12, 15, 16, 18, 20, 24)
   }
 
   it should "find the square root" in {
@@ -26,5 +26,10 @@ class NumericsSpec extends FlatSpec {
   it should "pick a random element from the stream" in {
     randomNumFromStream((1 to 4).toIterator)
       .foreach(println)
+  }
+
+  it should "compute the n-th perfect number" in {
+    perfectNum(2) shouldBe 28
+    perfectNum(11) shouldBe 118
   }
 }

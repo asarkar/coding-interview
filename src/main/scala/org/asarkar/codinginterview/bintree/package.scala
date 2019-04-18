@@ -1,6 +1,7 @@
 package org.asarkar.codinginterview
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 import scala.util.matching.Regex
 
 package object bintree {
@@ -55,6 +56,11 @@ package object bintree {
   /*
    * A unival tree (which stands for "universal value") is a tree where all nodes under it have the same value.
    * Given the root to a binary tree, count the number of unival subtrees.
+   * Examples: See unival.png. The various unival trees are shown inside light blue ellipses.
+   *
+   * ANSWER: A node is a unival tree is both of its children are unival trees, and if its value is equal to the values
+   * of its children (if any or both of the children are absent, they count as empty unival trees). The following
+   * algorithm follows straight from the above observation.
    */
   def countUnival[T](root: Node[T]): Int = {
     def loop(node: Node[T]): (Int, Boolean) = {
@@ -121,21 +127,16 @@ package object bintree {
 
     // builds the tree contained between in[left..right]. returns the root and the size of the newly built tree
     def buildTree(left: Int, right: Int, preIdx: Int): (Node[T], Int) = {
-      if (left == right) (new Node[T](null, null, in(left)), preIdx + 1)
+      if (left > right || !pre.isDefinedAt(preIdx)) (null, -1)
       else {
-        val mid = inorderIndexMap(pre(preIdx))
-        val (l, x) = buildTree(left, mid - 1, preIdx + 1)
-        val (r, y) = buildTree(mid + 1, right, x)
-        (new Node[T](l, r, in(mid)), y)
+        val rootIdx = inorderIndexMap(pre(preIdx))
+        val (l, lIdx) = buildTree(left, rootIdx - 1, preIdx + 1)
+        val (r, rIdx) = buildTree(rootIdx + 1, right, math.max(preIdx, lIdx) + 1)
+        (new Node[T](l, r, pre(preIdx)), Seq(preIdx, lIdx, rIdx).max)
       }
     }
 
-    val (root, size) = buildTree(0, in.size - 1, 0)
-    assert(
-      size == pre.size,
-      s"Size of the reconstructed tree: $size doesn't match the given number of vertices: ${pre.size}"
-    )
-    root
+    buildTree(0, in.size - 1, 0)._1
   }
 
   /*
@@ -167,5 +168,42 @@ package object bintree {
         case '/' if right != 0d => (1d * left) / right
       }
     }
+  }
+
+  /*
+   * Given a binary tree, return the level of the tree that has the minimum sum. The level of a node is defined as the
+   * number of connections required to get to the root, with the root having level zero.
+   */
+  def minSumLevel(root: Node[Integer]): Int = {
+    def minSum(level: Int, nodes: Seq[Node[Integer]]): Int = {
+      if (nodes.isEmpty) 0
+      else {
+        val (ch, s) = nodes
+          .foldLeft((ListBuffer.empty[Node[Integer]], 0)) { case ((children, sum), n) =>
+            (children ++= Seq(n.getLeft, n.getRight).filterNot(_ == null), sum + n.getDatum)
+          }
+        math.min(s, minSum(level + 1, ch))
+      }
+    }
+
+    minSum(0, Seq(root))
+  }
+
+  /*
+   * Given a binary search tree, find the floor and ceiling of a given integer. The floor is the highest element in the
+   * tree less than or equal to the integer, while the ceiling is the lowest element in the tree greater than or equal
+   * to the integer.
+   * If either of the values does not exist, return null.
+   */
+  def floorAndCeiling(root: Node[Integer], v: Int): (Option[Int], Option[Int]) = {
+    @tailrec
+    def loop(node: Node[Integer], floor: Option[Int], ceil: Option[Int]): (Option[Int], Option[Int]) = {
+      if (node == null) (floor, ceil)
+      else if (node.getDatum == v) (Some(node.getDatum), Some(node.getDatum))
+      else if (node.getDatum < v) loop(node.getRight, Some(node.getDatum), ceil)
+      else loop(node.getLeft, floor, Some(node.getDatum))
+    }
+
+    loop(root, None, None)
   }
 }

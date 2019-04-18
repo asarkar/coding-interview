@@ -222,4 +222,30 @@ package object numerics {
       .drop(1)
       .map(_._2)
   }
+
+  /*
+   * A number is considered perfect if its digits sum up to exactly 10.
+   * Given a positive integer n, return the n-th perfect number.
+   * For example, given 1, you should return 19. Given 2, you should return 28.
+   *
+   * ANSWER: By observation, the n-th perfect number is the string "n" + (10 - sum of the digits of n).
+   */
+  def perfectNum(n: Int): Int = {
+    val rest = 10 - n.toString
+      .map(_.asDigit)
+      .sum
+
+    s"$n$rest".toInt
+  }
+
+  /*
+   * Using a function rand7() that returns an integer from 1 to 7 (inclusive) with uniform probability, implement a
+   * function rand5() that returns an integer from 1 to 5 (inclusive).
+   *
+   * ANSWER:
+   * do {
+   *   r = rand7
+   * } while r > 5
+   * return r;
+   */
 }

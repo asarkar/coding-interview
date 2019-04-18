@@ -17,4 +17,17 @@ class HashtablesSpec extends FlatSpec {
     threeSum(IndexedSeq(4, 5, 6), 12) shouldBe empty
     threeSum(IndexedSeq(4, 4, 6), 12) shouldBe empty
   }
+
+  it should "calculate the least number of bricks" in {
+    leastBricks(
+      IndexedSeq(
+        IndexedSeq(1, 2, 2, 1),
+        IndexedSeq(3, 1, 2),
+        IndexedSeq(1, 3, 2),
+        IndexedSeq(2, 4),
+        IndexedSeq(3, 1, 2),
+        IndexedSeq(1, 3, 1, 1)
+      )
+    ) shouldBe 2
+  }
 }

@@ -100,4 +100,26 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
     u2.length shouldBe 6
     u2.forall(Character.isLowerCase) shouldBe true
   }
+
+  it should "all pairs of distinct indices that form a palindrome" in {
+    palindromePairs(Seq("abcd", "dcba", "lls", "s", "sssll")) should contain theSameElementsAs
+      Seq((0, 1), (1, 0), (3, 2), (2, 4))
+    palindromePairs(Seq("bat", "tab", "cat")) should contain theSameElementsAs
+      Seq((0, 1), (1, 0))
+  }
+
+  it should "output a string in zigzag pattern" in {
+    zigZag("PAYPALISHIRING", 3) shouldBe "PAHNAPLSIIGYIR"
+    zigZag("PAYPALISHIRING", 4) shouldBe "PINALSIGYAHRPI"
+  }
+
+  it should "find the lexicographically minimum string rotation" in {
+    lexicographicallyMinRotation("baabbaba") shouldBe "aabbabab"
+    lexicographicallyMinRotation("BCABDADAB") shouldBe "ABBCABDAD"
+  }
+
+  it should "Maximum XOR of two Numbers in an array" in {
+    maxXor(IndexedSeq(4, 6, 7)) shouldBe 3
+    maxXor(IndexedSeq(3, 10, 5, 25, 2, 8)) shouldBe 28
+  }
 }

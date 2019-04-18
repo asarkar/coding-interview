@@ -477,4 +477,193 @@ package object arrays {
       xs(i)(layer) = tmp
     }
   }
+
+  /*
+   * Get product of all other elements.
+   *
+   * ANSWER: See https://github.com/asarkar/adm/tree/master/src/main/scala/org/asarkar/adm/data/package.scala
+   */
+
+  /*
+   * Given an integer array, you need to find one continuous subarray that if you only sort this subarray in ascending
+   * order, then the whole array will be sorted in ascending order, too.
+   * You need to find the shortest such subarray and output its length.
+   *
+   * ANSWER: Observe that any element that is to the right of and smaller than the maximum element seen so far is in
+   * the wrong place. Thus, if we keep track of the running max, and the index of the last element that's smaller than
+   * it, we will have the right boundary of the subarray that needs to be sorted. Lets name it right.
+   * Similarly, we can find the left boundary by keeping track of the index of the last element that's to the left of
+   * and greater than the running min. We name it left.
+   *
+   * The answer is simply the size of the subarray between left and right, both inclusive. If the array is already
+   * sorted, then left is not less than right, and we return zero.
+   */
+  def unsortedSubarrayLen(xs: IndexedSeq[Int]): Int = {
+    if (xs.isEmpty) 0
+    else {
+      val r = (1 until xs.size)
+        .foldLeft((xs.head, -1)) { case ((max, right), i) =>
+          if (xs(i) < max) (max, i)
+          else if (xs(i) > max) (xs(i), right)
+          else (max, right)
+        }
+        ._2
+
+      val l = (xs.size - 2 to 0 by -1)
+        .foldLeft((xs.last, -1)) { case ((min, left), i) =>
+          if (xs(i) > min) (min, i)
+          else if (xs(i) < min) (xs(i), left)
+          else (min, left)
+        }
+        ._2
+
+      if (r > l) r - l + 1 else 0
+    }
+  }
+
+  /*
+   * You are given an integer array nums and you have to return a new counts array. The counts array has the property
+   * where counts[i] is the number of smaller elements to the right of nums[i].
+   *
+   * For example:
+   * nums: [5,2,6,1]
+   * count: [2,1,1,0]
+   *
+   * Explanation:
+   * To the right of 5 there are 2 smaller elements (2 and 1).
+   * To the right of 2 there is only 1 smaller element (1).
+   * To the right of 6 there is 1 smaller element (1).
+   * To the right of 1 there is 0 smaller element.
+   *
+   * ANSWER: Note that in a list sorted in the descending order, the number of elements smaller than any element are
+   * the ones on its right. Thus, if we build this list starting from the last element of nums, at each iteration,
+   * we can find the index where the current element is supposed to be inserted to preserve the sorting. We can find
+   * this insertion index using a modified binary search. If there are equal elements, we insert at the end, consistent
+   * with the idea that all elements to the right of the newly inserted element must be smaller than itself.
+   * Python happens to have a library for this called bisect (https://docs.python.org/2/library/bisect.html).
+   *
+   * We use a ListBuffer for the sorted list which internally uses a LinkedList. Insertion in the worst case takes O(n)
+   * time. Binary search takes O(log n) time. Thus, the overall time complexity is O(n^2).
+   *
+   * A better solution would be to use a BST instead of a LinkedList where the left subtree of the BST consists of
+   * strictly smaller elements. If we keep track of the size of the left subtree at each node, it is precisely the
+   * number of elements smaller than the current element. Insertion in BST takes O(log n) time, and so does finding a
+   * node. Thus, overall time complexity would be O(n log n). Of course, if the input array is sorted, BST would
+   * degenerate in a linked list. An even better solution would be to use a Red-black tree.
+   */
+  def countSmaller(nums: IndexedSeq[Int]): IndexedSeq[Int] = {
+    @tailrec
+    def lastIndex(i: Int, lo: Int, hi: Int, sorted: ListBuffer[Int]): Int = {
+      if (lo > hi) lo
+      else {
+        val mid = lo + (hi - lo) / 2
+        if (sorted(mid) == i) {
+          if (mid + 1 <= hi && (sorted(mid + 1) == i)) lastIndex(i, mid + 1, hi, sorted)
+          else mid + 1
+        } else if (sorted(mid) < i) lastIndex(i, lo, mid - 1, sorted)
+        else lastIndex(i, mid + 1, hi, sorted)
+      }
+    }
+
+    (nums.size - 1 to 0 by -1)
+      .foldLeft((Array.ofDim[Int](nums.size), ListBuffer.empty[Int])) { case ((count, sorted), i) =>
+        val idx = lastIndex(nums(i), 0, sorted.size - 1, sorted)
+        sorted.insert(idx, nums(i))
+        count(i) = math.max(0, sorted.size - 1 - idx)
+        (count, sorted)
+      }
+      ._1
+  }
+
+  /*
+   * On our special chessboard, two bishops attack each other if they share the same diagonal. This includes bishops
+   * that have another bishop located between them, i.e. bishops can attack through pieces.
+   * You are given N bishops, represented as (row, column) tuples on a M by M chessboard. Write a function to count
+   * the number of pairs of bishops that attack each other. The ordering of the pair doesn't matter: (1, 2) is
+   * considered the same as (2, 1).
+   *
+   * For example, given M = 5 and the list of bishops:
+   * (0, 0), (1, 2), (2, 2), (4, 0), (4, 4)
+   * The board would look like this:
+   * [b 0 0 0 0]
+   * [0 0 b 0 0]
+   * [0 0 b 0 0]
+   * [0 0 0 0 0]
+   * [b 0 0 0 b]
+   *
+   * You should return 2, since bishops 1 and 3 attack each other, as well as bishops 3 and 4.
+   *
+   * ANSWER: We simply launch a search from each cell that contains a bishop. The efficiency comes from not searching
+   * along a diagonal twice. In the example above, we would visit cells (1, 1), (2, 2), (3, 3) and (4, 4) while looking
+   * for another bishop under attack from the one at (0, 0). Later, when searching for bishops under attack from (2, 2),
+   * there's no need to search this diagonal again. Same goes for (4, 4). The number of attacking pairs along a
+   * diagonal is simply k choose 2, where k is the number of bishops along that diagonal.
+   *
+   * Time complexity:
+   * If there are 2N bishops, placed along the top row and the left column, we will end up visiting all the cells.
+   * Thus, worst case time complexity is O(N^2). Space complexity is always O(N^2).
+
+Hence in all cases the number of squares touched is
+
+𝑁+𝑀−(𝑁,𝑀)
+   */
+  object ContentOfCell extends Enumeration {
+    val Bishop, Empty, Seen = Value
+  }
+
+  def numAttackingBishops(bishops: Seq[(Int, Int)], dim: Int): Int = {
+    val board = Array.fill[ContentOfCell.Value](dim, dim)(ContentOfCell.Empty)
+    bishops
+      .foreach { case (r, c) => board(r)(c) = ContentOfCell.Bishop }
+
+    def count(row: Int, col: Int, f: Int => (Int, Int)): Int = {
+      val cnt = Iterator.range(1, dim)
+        .map(f)
+        .takeWhile { case (r, c) => board.isDefinedAt(r) && board(r).isDefinedAt(c) && board(r)(c) != ContentOfCell.Seen }
+        .foldLeft(0) { case (acc, (r, c)) =>
+          val x = if (board(r)(c) == ContentOfCell.Bishop) 1
+          else {
+            board(r)(c) = ContentOfCell.Seen
+            0
+          }
+          acc + x
+        } + 1 // count the bishop at (row, col)
+      (cnt * (cnt - 1)) / 2
+    }
+
+    bishops
+      .map { case (row, col) =>
+        count(row, col, j => (row + j, col + j)) +
+          count(row, col, j => (row + j, col - j)) +
+          count(row, col, j => (row - j, col + j)) +
+          count(row, col, j => (row - j, col - j))
+      }
+      .sum
+  }
+
+  /*
+   * Given a list of integers, return the largest product that can be made by multiplying any three integers.
+   * For example, if the list is [-10, -10, 5, 2], we should return 500, since that's -10 * -10 * 5.
+   * You can assume the list has at least three integers.
+   *
+   * ANSWER: We scan the array and keep track of the max 3 elements, as well as the minimum 2 elements. This is because
+   * in a sorted array, the largest product may come from the max 3 elements, but also from the max element and the
+   * min 2 elements (rotate around).
+   *
+   * Time complexity: O(n).
+   */
+  def largestProduct(xs: IndexedSeq[Int]): Int = {
+    val x = xs.foldLeft((Int.MinValue, Int.MinValue, Int.MinValue, Int.MaxValue, Int.MaxValue)) {
+      case ((max1, max2, max3, min1, min2), i) =>
+        if (i > max1 && i < min1) (i, i, i, i, i)
+        else if (i > max1) (i, max1, max2, min1, min2)
+        else if (i > max2) (max1, i, max2, min1, min2)
+        else if (i > max2) (max1, max2, i, min1, min2)
+        else if (i < min1) (max1, max2, max3, i, min1)
+        else if (i < min2) (max1, max2, max3, min1, i)
+        else (max1, max2, max3, min1, min2)
+    }
+
+    math.max(x._1 * x._2 * x._3, x._4 * x._5 * x._1)
+  }
 }

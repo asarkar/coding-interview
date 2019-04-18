@@ -124,11 +124,55 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
       (IndexedSeq(500), 1, Seq(500)),
       (IndexedSeq(1, 1, 1), 1, Seq(1, 1, 1)),
       (IndexedSeq(6), 2, Seq.empty[Int]),
-      (IndexedSeq(6), 0, Seq.empty[Int])
+      (IndexedSeq(6), 0, Seq.empty[Int]),
+      (IndexedSeq(1, -1), 1, Seq(1, -1)),
+      (IndexedSeq(1, 3, 1, 2, 0, 5), 3, Seq(3, 3, 2, 5)),
+      (IndexedSeq.empty[Int], 0, Seq.empty[Int]),
+      (IndexedSeq(5, 3, 4), 1, IndexedSeq(5, 3, 4))
     )
 
     forAll(data) { (xs, k, maximums) =>
       maxValuesOfSubarrays(xs, k) should contain theSameElementsInOrderAs maximums
     }
+  }
+
+  it should "find unsorted subarray length" in {
+    val data = Table(
+      ("xs", "len"),
+      (IndexedSeq.empty[Int], 0),
+      (IndexedSeq(1), 0),
+      (IndexedSeq(1, 2, 3, 4), 0),
+      (IndexedSeq(1, 3, 2, 2, 2), 4),
+      (IndexedSeq(2, 1), 2),
+      (IndexedSeq(1, 1), 0),
+      (IndexedSeq(2, 6, 4, 8, 10, 9, 15), 5),
+      (IndexedSeq(1, 3, 2, 3, 3), 2)
+    )
+
+    forAll(data) { (xs, len) =>
+      unsortedSubarrayLen(xs) shouldBe len
+    }
+  }
+
+  it should "count the smaller numbers after self" in {
+    val data = Table(
+      ("xs", "ys"),
+      (IndexedSeq(5, 2, 6, 1), IndexedSeq(2, 1, 1, 0)),
+      (IndexedSeq(-1, -1), IndexedSeq(0, 0)),
+      (IndexedSeq(1), IndexedSeq(0))
+    )
+
+    forAll(data) { (xs, ys) =>
+      countSmaller(xs) should contain theSameElementsInOrderAs ys
+    }
+  }
+
+  it should "count the number of pairs of bishops that attack each other" in {
+    numAttackingBishops(IndexedSeq((0, 0), (1, 2), (2, 2), (4, 0), (4, 4)), 5) shouldBe 4
+  }
+
+  it should "compute the maximum product of three numbers" in {
+    largestProduct(IndexedSeq(-10, -3, 5, 6, -20)) shouldBe 1200
+    largestProduct(IndexedSeq(1, -4, 3, -6, 7, 0)) shouldBe 168
   }
 }

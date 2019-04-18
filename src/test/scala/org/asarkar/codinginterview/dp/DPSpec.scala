@@ -81,4 +81,15 @@ class DPSpec extends FlatSpec with TableDrivenPropertyChecks {
     subsetSum(IndexedSeq(12, 1, 61, 5, 9, 2), 24).sum shouldBe 24
     subsetSum(IndexedSeq(7, 3, 2, 5, 8), 18).sum shouldBe 18
   }
+
+  it should "find the number of ways of starting at the top-left corner and getting to the bottom-right corner" in {
+    numWays(2, 2) shouldBe 2
+    numWays(5, 5) shouldBe 70
+  }
+
+  it should "count the number of unique BST" in {
+    numUniqBST(3) shouldBe 5
+    numUniqBST(4) shouldBe 14
+    numUniqBST(1) shouldBe 1
+  }
 }

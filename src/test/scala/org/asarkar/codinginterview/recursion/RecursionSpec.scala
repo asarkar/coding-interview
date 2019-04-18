@@ -88,4 +88,65 @@ class RecursionSpec extends FlatSpec with TableDrivenPropertyChecks {
     )
     isColorable(g, 3) shouldBe true
   }
+
+  it should "implement integer multiplication" in {
+    val data = Table(
+      ("x", "y", "pdt"),
+      (2, 3, 8d),
+      (2, -3, 1d / 8),
+      (2, 0, 1d)
+    )
+
+    forAll(data) { (x, y, pdt) =>
+      fastPow(x, y) shouldBe (pdt +- 0.01d)
+    }
+  }
+
+  it should "find if the word exists in the grid" in {
+    val data = Table(
+      ("grid", "word", "found"),
+      (IndexedSeq(
+        IndexedSeq('A', 'B', 'C', 'E'),
+        IndexedSeq('S', 'F', 'C', 'S'),
+        IndexedSeq('A', 'D', 'E', 'E')
+      ), "ABCCED", true),
+      (IndexedSeq(
+        IndexedSeq('A', 'B', 'C', 'E'),
+        IndexedSeq('S', 'F', 'C', 'S'),
+        IndexedSeq('A', 'D', 'E', 'E')
+      ), "SEE", true),
+      (IndexedSeq(
+        IndexedSeq('A', 'B', 'C', 'E'),
+        IndexedSeq('S', 'F', 'C', 'S'),
+        IndexedSeq('A', 'D', 'E', 'E')
+      ), "ABCB", false),
+      (IndexedSeq(
+        IndexedSeq('A')
+      ), "A", true),
+      (IndexedSeq(
+        IndexedSeq('C', 'A', 'A'),
+        IndexedSeq('A', 'A', 'A'),
+        IndexedSeq('B', 'C', 'D')
+      ), "AAB", true),
+      (IndexedSeq(
+        IndexedSeq('A', 'B', 'C', 'E'),
+        IndexedSeq('S', 'F', 'E', 'S'),
+        IndexedSeq('A', 'D', 'E', 'E')
+      ), "ABCESEEEFS", true)
+    )
+
+    forAll(data) { (grid, word, found) =>
+      hasWord(grid, word) shouldBe found
+    }
+  }
+
+  it should "compute a knight's tour" in {
+    val tour = knightsTour(8)
+    tour should not be empty
+    println(tour.map(_.map(i => f"$i%2d").mkString(" ")).mkString(System.lineSeparator()))
+    tour.foreach(row => row.foreach { move =>
+      move should be >= 1
+      move should be <= 64
+    })
+  }
 }

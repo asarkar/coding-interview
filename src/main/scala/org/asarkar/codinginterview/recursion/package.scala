@@ -377,4 +377,149 @@ package object recursion {
 
     color(0, 0)
   }
+
+  /*
+   * Implement integer exponentiation. That is, implement the pow(x, y) function, where x and y are integers and
+   * returns x^y.
+   * Do this faster than the naive method of repeated multiplication.
+   *
+   * For example, pow(2, 10) should return 1024.
+   *
+   * ANSWER: The recurrence relation is as follows:
+   * x^y = x^(y/2) * x^(y/2) if y is even and positive -- case 1
+   *     = x * x^(y-1) if y is odd and positive -- case 2
+   *     = 1 if y = 0 -- base case
+   *
+   * If y is negative, we handle that in case 2; since case 1 simply multiplies the result with itself, it doesn't need
+   * to worry about the sign of y. Also, since every value of y would eventually calculate y = 1, which is odd, we are
+   * covered.
+   * For example, fastPow(2, -3) -> fastPow(2, 2) -> fastPow(2, 1) -> fastPow(2, 0).
+   * fastPow(2, 1) returns 1/2, fastPow(2, 2) returns 1/4, fastPow(2, -3) returns 1/8.
+   *
+   * Time complexity: Outside the recursive calls, the cost is only for multiplication. Since the input is halved each
+   * time, the time complexity is O(log n) (there's one additional call for odd y that can safely be ignored for
+   * Big-Oh).
+   */
+  def fastPow(x: Int, y: Int): Double = {
+    if (y == 0) 1d
+    else {
+      if (y % 2 == 0) {
+        val a = fastPow(x, y / 2)
+        a * a
+      } else {
+        val a = fastPow(x, math.abs(y) - 1)
+        if (y > 0) x * a else 1 / (x * a)
+      }
+    }
+  }
+
+  /*
+   * Given a 2D board and a word, find if the word exists in the grid.
+   * The word can be constructed from letters of sequentially adjacent cell, where "adjacent" cells are those
+   * horizontally or vertically neighboring. The same letter cell may not be used more than once.
+   *
+   * ANSWER: Backtracking.
+   */
+  def hasWord(board: IndexedSeq[IndexedSeq[Char]], word: String): Boolean = {
+    def neighbors(row: Int, col: Int): Seq[(Int, Int)] = {
+      Seq((row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1))
+        .filter { case (r, c) => board.isDefinedAt(r) && board(r).isDefinedAt(c) }
+    }
+
+    def next(row: Int, col: Int, ch: Char): Option[(Int, Int)] = {
+      if (board.isDefinedAt(row) && board(row).isDefinedAt(col)) {
+        (row until board.size)
+          .flatMap(r => ((if (r == row) col + 1 else 0) until board(r).size).map((r, _)))
+          .find(x => board(x._1)(x._2) == ch)
+      } else None
+    }
+
+    def exists(row: Int, col: Int, i: Int, visited: collection.mutable.Set[(Int, Int)]): Boolean = {
+      if (i == word.length - 1 && board(row)(col) == word(i)) true
+      else if (word.isDefinedAt(i) && board(row)(col) == word(i) && !visited.contains((row, col))) {
+        visited += ((row, col))
+        val found = neighbors(row, col)
+          .view
+          .filterNot(visited.contains)
+          .exists { case (r, c) => exists(r, c, i + 1, visited) }
+        if (!found) {
+          // backtrack
+          visited -= ((row, col))
+        }
+        found
+      } else false
+    }
+
+    @tailrec
+    def find(row: Int, col: Int): Boolean = {
+      val visited = collection.mutable.Set.empty[(Int, Int)]
+      if (exists(row, col, 0, visited)) true
+      else next(row, col, word.head) match {
+        case Some((r, c)) => find(r, c)
+        case _ => false
+      }
+    }
+
+    find(0, 0)
+  }
+
+  /*
+   * A knight's tour is a sequence of moves by a knight on a chessboard such that all squares are visited once.
+   * Given N, write a function to return the number of knight's tours on an N by N chessboard.
+   *
+   * ANSWER: We want to return a NxN matrix where the value of each cell is the i-th move; in other words, a value
+   * of 5 would indicate the knight got to this cell in 4 moves from the initial cell (4 because the initial cell is
+   * considered as the first move).
+   * The usual approach to come mind is backtracking, where we visit each of the yet unvisited neighbors, and proceed
+   * recursively. However, if the next neighbor is chosen arbitrarily, this can lead to a non-terminating solution.
+   * From each cell, we have 8 potential neighbors to visit, and there are N^2 cells, so the time complexity is
+   * O(8^(N^2))! This is not surprising, because the knight's tour can be reduced to finding a Hamiltonian path
+   * problem, which is NP-Complete.
+   *
+   * A smarter way to choose the next neighbor is using a heuristic rule named Warnsdorff's rule, that chooses the
+   * neighbor with the fewest possible unvisited neighbors (called degree in the code below). The code below breaks
+   * ties arbitrarily, which has been shown to work for small boards (N < 40); for larger boards, there are smarter
+   * ways of breaking ties. See https://blog.asarkar.org/coding-interview-curated/#recursion for some interesting
+   * references.
+   *
+   * Using Warnsdorff's rule, this problem can be solved in O(N^2) time, using O(N^2) space for tracking the visited
+   * cells.
+   */
+  def knightsTour(size: Int): IndexedSeq[IndexedSeq[Int]] = {
+    val UNVISITED = -1
+    val moves = Array.fill[Int](size, size)(UNVISITED)
+
+    def neighbors(row: Int, col: Int): Seq[(Int, Int)] = {
+      // see knight.png
+      Seq(
+        (row - 2, col - 1), (row - 2, col + 1),
+        (row + 2, col - 1), (row + 2, col + 1),
+        (row - 1, col - 2), (row - 1, col + 2),
+        (row + 1, col - 2), (row + 1, col + 2)
+      )
+        .view
+        .filter { case (r, c) => r >= 0 && r < size && c >= 0 && c < size && moves(r)(c) == UNVISITED }
+    }
+
+    def degree(row: Int, col: Int): Int = {
+      neighbors(row, col)
+        .size
+    }
+
+    def visit(row: Int, col: Int, count: Int): Boolean = {
+      moves(row)(col) = count
+      if (count == size * size) true
+      else {
+        neighbors(row, col) match {
+          case Seq() => false
+          case neighbors =>
+            val best = neighbors.minBy(n => degree(n._1, n._2))
+            visit(best._1, best._2, count + 1)
+        }
+      }
+    }
+
+    if (visit(0, 0, 1)) moves.map(_.toIndexedSeq).toIndexedSeq
+    else IndexedSeq.empty
+  }
 }

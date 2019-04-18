@@ -47,4 +47,44 @@ class ListsSpec extends FlatSpec with TableDrivenPropertyChecks {
     }
     Lists.isPalindrome(null) shouldBe false
   }
+
+  it should "add two lists representing integers" in {
+    Lists.addTwoNumbers(
+      new Node[Integer](Seq[Integer](2, 4, 3).asJava),
+      new Node[Integer](Seq[Integer](5, 6, 4).asJava)
+    ).toList.asScala should contain theSameElementsInOrderAs Seq(7, 0, 8)
+
+    Lists.addTwoNumbers(
+      new Node[Integer](Seq[Integer](9).asJava),
+      new Node[Integer](Seq[Integer](9).asJava)
+    ).toList.asScala should contain theSameElementsInOrderAs Seq(8, 1)
+
+    Lists.addTwoNumbers(
+      new Node[Integer](Seq[Integer](1).asJava),
+      new Node[Integer](Seq[Integer](11).asJava)
+    ).toList.asScala should contain theSameElementsInOrderAs Seq(2, 1)
+  }
+
+  it should "rearrange a list to alternate high-low" in {
+    Lists.loHi(
+      new Node[Integer](Seq[Integer](1, 2, 3, 4, 5, 6, 7).asJava)
+    ).toList.asScala should contain theSameElementsInOrderAs Seq(1, 3, 2, 5, 4, 7, 6)
+
+    Lists.loHi(
+      new Node[Integer](Seq[Integer](9, 6, 8, 3, 7).asJava)
+    ).toList.asScala should contain theSameElementsInOrderAs Seq(6, 9, 3, 8, 7)
+
+    Lists.loHi(
+      new Node[Integer](Seq[Integer](6, 9, 2, 5, 1, 4).asJava)
+    ).toList.asScala should contain theSameElementsInOrderAs Seq(6, 9, 2, 5, 1, 4)
+  }
+
+  it should "find the intersection of two lists" in {
+    val common: Node[Integer] = new Node[Integer](Seq[Integer](8, 4, 5).asJava)
+    val l1 = new Node[Integer](new Node[Integer](common, 1), 4)
+    val l2 = new Node[Integer](new Node[Integer](new Node[Integer](common, 1), 0), 5)
+    Lists.getIntersectionNode(l1, l2).toList.asScala should contain theSameElementsInOrderAs Seq(8, 4, 5)
+
+    Lists.getIntersectionNode(new Node[Integer](1), new Node[Integer](2)) shouldBe null
+  }
 }

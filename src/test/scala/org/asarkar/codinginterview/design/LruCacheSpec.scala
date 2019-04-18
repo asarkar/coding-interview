@@ -10,41 +10,41 @@ class LruCacheSpec extends FlatSpec with OptionValues {
   }
 
   "LruCache" should "get nonexistent item" in {
-    val lruCache = new LruCache[Int, Int](2)
-    lruCache.isEmpty shouldBe true
+    val cache = new LruCache[Int, Int](2)
+    cache.isEmpty shouldBe true
 
-    lruCache.get(0).toOption shouldBe empty
+    cache.get(0).toOption shouldBe empty
   }
 
   it should "set and get" in {
-    val lruCache = new LruCache[Int, Int](2)
-    lruCache.set(0, 1000).toOption shouldBe empty
-    lruCache.get(0).toOption.value shouldBe 1000
-    lruCache.size() shouldBe 1
+    val cache = new LruCache[Int, Int](2)
+    cache.set(0, 1000).toOption shouldBe empty
+    cache.get(0).toOption.value shouldBe 1000
+    cache.size() shouldBe 1
   }
 
   it should "update and get" in {
-    val lruCache = new LruCache[Int, Int](2)
-    lruCache.set(0, 1000).toOption shouldBe empty
-    lruCache.set(0, 1001).toOption.value shouldBe 1000
-    lruCache.size() shouldBe 1
+    val cache = new LruCache[Int, Int](2)
+    cache.set(0, 1000).toOption shouldBe empty
+    cache.set(0, 1001).toOption.value shouldBe 1000
+    cache.size() shouldBe 1
   }
 
   it should "evict the oldest item" in {
-    val lruCache = new LruCache[Int, Int](2)
-    lruCache.set(0, 1000).toOption shouldBe empty
-    lruCache.set(1, 1001).toOption shouldBe empty
-    lruCache.set(2, 1002).toOption shouldBe empty
+    val cache = new LruCache[Int, Int](2)
+    cache.set(0, 1000).toOption shouldBe empty
+    cache.set(1, 1001).toOption shouldBe empty
+    cache.set(2, 1002).toOption shouldBe empty
 
-    lruCache.get(0).toOption shouldBe empty
-    lruCache.size() shouldBe 2
+    cache.get(0).toOption shouldBe empty
+    cache.size() shouldBe 2
   }
 
   it should "delete" in {
-    val lruCache = new LruCache[Int, Int](2)
-    lruCache.set(0, 1000).toOption shouldBe empty
-    lruCache.delete(0).toOption.value shouldBe 1000
-    lruCache.get(0).toOption shouldBe empty
-    lruCache.isEmpty shouldBe true
+    val cache = new LruCache[Int, Int](2)
+    cache.set(0, 1000).toOption shouldBe empty
+    cache.delete(0).toOption.value shouldBe 1000
+    cache.get(0).toOption shouldBe empty
+    cache.isEmpty shouldBe true
   }
 }

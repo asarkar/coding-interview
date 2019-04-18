@@ -387,4 +387,80 @@ package object dp {
    *
    * ANSWER: We simply find a subset that adds up to k/2. See subsetSum.
    */
+
+  /*
+   * There is an N by M matrix of zeroes. Given N and M, write a function to count the number of ways of starting at
+   * the top-left corner and getting to the bottom-right corner. You can only move right or down.
+   * For example, given a 2 by 2 matrix, you should return 2, since there are two ways to get to the bottom-right:
+   * Right, then down
+   * Down, then right
+   *
+   * Given a 5 by 5 matrix, there are 70 ways to get to the bottom-right.
+   *
+   * ANSWER: We solve this by dynamic programming. Let dp[i][j] be the number of ways to reach cell (i, j) from the
+   * top-left corner (cell (0, 0)). dp[i][j] is simply the sum of the number of ways to reach its neighbors.
+   *
+   * dp[0][0] = 1, since the only way to get to cell (0, 0) from itself is by not going anywhere.
+   */
+  def numWays(m: Int, n: Int): Int = {
+    val dp = Array.ofDim[Int](m, n)
+    dp(0)(0) = 1
+
+    def neighbors(row: Int, col: Int): Seq[(Int, Int)] = {
+      Seq((row - 1, col), (row, col - 1))
+        .filter { case (r, c) => r >= 0 && r < m && c >= 0 && c < n }
+    }
+
+    for (row <- 0 until m; col <- 0 until n) {
+      if (row + col > 0) {
+        dp(row)(col) = neighbors(row, col)
+          .map(x => dp(x._1)(x._2))
+          .sum
+      }
+    }
+
+    dp(m - 1)(n - 1)
+  }
+
+  /*
+   * Given n, how many structurally unique BST's (binary search trees) that store values 1 ... n?
+   *
+   * Example:
+   * Input: 3
+   * Output: 5
+   * Explanation:
+   * Given n = 3, there are a total of 5 unique BST's:
+   * 1         3     3      2      1
+   *  \       /     /      / \      \
+   *   3     2     1      1   3      2
+   *  /     /       \                 \
+   * 2     1         2                 3
+   *
+   * ANSWER: The number of unique BSTs is product of the number of unique BSTs of the left range and the right range.
+   * That's because every one of the BSTs on the left can be combined with every one of the BSTs on the right to create
+   * a unique BST rooted at the same node.
+   *
+   * Since the problem has overlapping subproblems, we memoize the results.
+   *
+   * Time complexity: For every value in 1..n, we call numTrees recursively that only rewinds when lo = hi. Thus, for
+   * n = 1, there's hi - 1 calls, n = 2, hi - 1 calls, and so on. However, due to the bottom up DP, only the first
+   * recursive calls do work, others simply return the memoized values. Thus, time complexity is O(n).
+   */
+  def numUniqBST(n: Int): Int = {
+    val dp = Array.ofDim[Int](n + 1, n + 1)
+
+    def numTrees(lo: Int, hi: Int): Int = {
+      if (lo > hi) 0
+      else if (dp(lo)(hi) > 0) dp(lo)(hi)
+      else {
+        val total = (lo to hi)
+          .map(i => math.max(1, numTrees(lo, i - 1)) * math.max(1, numTrees(i + 1, hi)))
+          .sum
+        dp(lo)(hi) = total
+        total
+      }
+    }
+
+    numTrees(1, n)
+  }
 }

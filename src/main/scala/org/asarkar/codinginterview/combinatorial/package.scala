@@ -31,4 +31,20 @@ package object combinatorial {
    *   j <- random integer such that i <= j < n
    *   exchange a[i] and a[j]
    */
+
+  /*
+   * Assume you have access to a function toss_biased() which returns 0 or 1 with a probability that's not 50-50
+   * (but also not 0-100 or 100-0). You do not know the bias of the coin.
+   *
+   * Write a function to simulate an unbiased coin toss.
+   *
+   * ANSWER: The solution to this can be attributed to mathematician John von Neumann.
+   *
+   * Let's assume that the probability of getting a heads is 0.7 and probability of getting a tails is 0.3.
+   * The probability of flipping a HT is P(heads) x P(tails) = 0.7 x 0.3 = .21
+   * The probability of flipping a TH is P(tails) x P(heads) = 0.3 x 0.7 = .21
+   *
+   * Thus, we throw the coin twice. If it’s TH, we say it's T. If it’s HT, we say it's H. If it's either HH or TT,
+   * we repeat the process.
+   */
 }

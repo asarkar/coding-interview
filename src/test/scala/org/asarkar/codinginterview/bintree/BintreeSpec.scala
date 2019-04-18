@@ -2,10 +2,11 @@ package org.asarkar.codinginterview.bintree
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._
+import org.scalatest.prop.TableDrivenPropertyChecks
 
 import scala.collection.JavaConverters._
 
-class BintreeSpec extends FlatSpec {
+class BintreeSpec extends FlatSpec with TableDrivenPropertyChecks {
   "bintree" should "construct a binary tree from the given array" in {
     val root = new Node[Integer](Array[Integer](6, 5, 4, 3, 2, 1))
   }
@@ -80,7 +81,7 @@ class BintreeSpec extends FlatSpec {
     root.left.left.left.left shouldBe null
   }
 
-  // c.f. src/test/resources/unival.jpg
+  // c.f. unival.png
   it should "count unival trees" in {
     val b1 = new Node[Character](null, null, 'b')
     val b2 = new Node[Character](null, b1, 'b')
@@ -172,6 +173,16 @@ class BintreeSpec extends FlatSpec {
     val b: Node[Integer] = reconstruct1(IndexedSeq(50, 30, 10, 40, 70, 60, 90), in2)
 
     BinTrees.morrisInorder[Integer](b).asScala should contain theSameElementsInOrderAs in2
+
+    val in3 = IndexedSeq[Integer](1, 2)
+    val c: Node[Integer] = reconstruct1(IndexedSeq(1, 2), in3)
+
+    BinTrees.morrisInorder[Integer](c).asScala should contain theSameElementsInOrderAs in3
+
+    val in4 = IndexedSeq[Integer](1, 2, 3, 4)
+    val d: Node[Integer] = reconstruct1(IndexedSeq(3, 1, 2, 4), in4)
+
+    BinTrees.morrisInorder[Integer](d).asScala should contain theSameElementsInOrderAs in4
   }
 
   it should "evaluate a binary tree" in {
@@ -184,5 +195,39 @@ class BintreeSpec extends FlatSpec {
     val multiply = new Node[Character](plus1, plus2, '*')
 
     eval(multiply) shouldBe (45d +- 0.001d)
+  }
+
+  it should "get tree level with minimum sum" in {
+    val five = new Node[Integer](null, null, 5)
+    val four = new Node[Integer](null, null, 4)
+    val three = new Node[Integer](four, five, 3)
+    val two = new Node[Integer](null, null, 2)
+    val one = new Node[Integer](two, three, 1)
+
+    minSumLevel(one) shouldBe 0
+  }
+
+  it should "find the floor and ceiling of a given integer" in {
+    val two = new Node[Integer](null, null, 2)
+    val six = new Node[Integer](null, null, 6)
+    val four = new Node[Integer](two, six, 4)
+
+    val nine = new Node[Integer](null, null, 9)
+    val twelve = new Node[Integer](null, null, 12)
+    val ten = new Node[Integer](nine, twelve, 10)
+
+    val eight = new Node[Integer](four, ten, 8)
+
+    val data = Table(
+      ("i", "floor", "ceil"),
+      (1, None, Some(2)),
+      (3, Some(2), Some(4)),
+      (9, Some(9), Some(9)),
+      (7, Some(6), Some(8))
+    )
+
+    forAll(data) { (i, floor, ceil) =>
+      floorAndCeiling(eight, i) shouldBe(floor, ceil)
+    }
   }
 }
