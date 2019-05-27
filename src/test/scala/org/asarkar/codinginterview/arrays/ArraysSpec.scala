@@ -175,4 +175,38 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
     largestProduct(IndexedSeq(-10, -3, 5, 6, -20)) shouldBe 1200
     largestProduct(IndexedSeq(1, -4, 3, -6, 7, 0)) shouldBe 168
   }
+
+  it should "find the longest increasing subsequence" in {
+    longestIncSubseq(IndexedSeq(1, 3, 6, 7, 9, 4, 10, 5, 6)) shouldBe 6
+    longestIncSubseq(IndexedSeq(2, 2)) shouldBe 1
+  }
+
+  it should "determine the minimum number of columns that can be removed" in {
+    minColToRemove(IndexedSeq(
+      IndexedSeq('c', 'b', 'a'),
+      IndexedSeq('d', 'a', 'f'),
+      IndexedSeq('g', 'h', 'i')
+    )) shouldBe 1
+
+    minColToRemove(IndexedSeq(
+      IndexedSeq('a', 'b', 'c', 'd', 'e', 'f')
+    )) shouldBe 0
+
+    minColToRemove(IndexedSeq(
+      IndexedSeq('z', 'y', 'x'),
+      IndexedSeq('w', 'v', 'u'),
+      IndexedSeq('t', 's', 'r')
+    )) shouldBe 3
+
+    minColToRemove(IndexedSeq(
+      IndexedSeq('a', 'b', 'd', 'f', 'c', 'e')
+    )) shouldBe 0
+  }
+
+  it should "determine whether the array could become non-decreasing by modifying at most 1 element" in {
+    checkPossibility(IndexedSeq(4, 2, 1)) shouldBe false
+    checkPossibility(IndexedSeq(4, 2, 3)) shouldBe true
+    checkPossibility(IndexedSeq(3, 4, 2, 3)) shouldBe false
+    checkPossibility(IndexedSeq(-1, 4, 2, 3)) shouldBe true
+  }
 }

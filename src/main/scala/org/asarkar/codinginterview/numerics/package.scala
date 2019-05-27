@@ -8,75 +8,98 @@ import scala.util.Random
 
 package object numerics {
   /*
-     * Compute the first n Hamming number (https://en.wikipedia.org/wiki/Regular_number).
-     *
-     * ANSWER: Recall axiom 2 in Dijkstra's original paper (https://blog.asarkar.org/assets/docs/algorithms-curated/Hamming's%20Problem%20-%20Dijkstra.pdf):
-     * Axiom 2. If x is in the sequence, so is 2 * x, 3 * x, and 5 * x.
-     * After some whiteboarding, it became clear that the axiom 2 is not an invariant at each iteration of the algorithm,
-     * but actually the goal of the algorithm itself. At each iteration, we try to restore the condition in axiom 2.
-     * If last is the last value in the result sequence S, axiom 2 can simply be rephrased as:
-     * For some x in S, the next value in S is the minimum of 2x,  3x, and 5x, that is greater than last.
-     * Let's call this axiom 2'.
-     *
-     * Thus, if we can find x, we can compute the minimum of 2x, 3x, and 5x in constant time, and add it to S.
-     * But how do we find x? One approach is, we don't; instead, whenever we add a new element e to S, we compute 2e, 3e,
-     * and 5e, and add them to a minimum priority queue. Since this operations guarantees e is in S, simply extracting
-     * the top element of the PQ satisfies axiom 2'.
-     *
-     * This approach works, but the problem is that we generate a bunch of numbers we may not end up using. For example:
-     * +---------+--------------------------------+-------------+
-     * | #       | PQ                             | S           |
-     * +---------+--------------------------------+-------------+
-     * | initial | {2,3,5}                        | {1}         |
-     * +---------+--------------------------------+-------------+
-     * | 1       | {3,4,5,6 10}                   | {1,2}       |
-     * +---------+--------------------------------+-------------+
-     * | 2       | {4,5,6,6,9,10,15}              | {1,2,3}     |
-     * +---------+--------------------------------+-------------+
-     * | 3       | {5,6,6,8,9,10,12,15,20}        | {1,2,3,4}   |
-     * +---------+--------------------------------+-------------+
-     * | 4       | {6,6,8,9,10,10,12,15,15,20,25} | {1,2,3,4,5} |
-     * +---------+--------------------------------+-------------+
-     *
-     * If we want the 5th element in S (5), the PQ at that moment holds 6,6,8,9,10,10,12,15,15,20,25. Can we not waste
-     * this space?
-     *
-     * Turns out, we can do better. Instead of storing all these numbers, we simply maintain three counters for each of
-     * the multiples, namely, 2i, 3j, and 5k. These are candidates for the next number in S. When we pick one of them,
-     * we increment only the corresponding counter, and not the other two. By doing so, we are not eagerly generating
-     * all the multiples, thus solving the space problem with the first approach.
-     *
-     * Let's see a dry run for n = 8, i.e. the number 9. We start with 1, as stated by axiom 1 in Dijkstra's paper.
-     *
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | #       | i | j | k | 2i | 3j | 5k | S                 |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | initial | 1 | 1 | 1 | 2  | 3  | 5  | {1}               |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 1       | 1 | 1 | 1 | 2  | 3  | 5  | {1,2}             |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 2       | 2 | 1 | 1 | 4  | 3  | 5  | {1,2,3}           |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 3       | 2 | 2 | 1 | 4  | 6  | 5  | {1,2,3,4}         |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 4       | 3 | 2 | 1 | 6  | 6  | 5  | {1,2,3,4,5}       |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 5       | 3 | 2 | 2 | 6  | 6  | 10 | {1,2,3,4,5,6}     |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 6       | 4 | 2 | 2 | 8  | 6  | 10 | {1,2,3,4,5,6}     |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 7       | 4 | 3 | 2 | 8  | 9  | 10 | {1,2,3,4,5,6,8}   |
-     * +---------+---+---+---+----+----+----+-------------------+
-     * | 8       | 5 | 3 | 2 | 10 | 9  | 10 | {1,2,3,4,5,6,8,9} |
-     * +---------+---+---+---+----+----+----+-------------------+
-     *
-     * Notice that S didn't grow at iteration 6, because the minimum candidate 6 had already been added previously.
-     * To avoid this problem of having to remember all of the previous elements, we amend our algorithm to increment all
-     * the counters whenever the corresponding multiples are equal to the minimum candidate.
-     * That brings us to the following implementation.
-     *
-     * Time Complexity: O(n)
-     */
+   * Using a function rand5() that returns an integer from 1 to 5 (inclusive) with uniform probability, implement a
+   * function rand7() that returns an integer from 1 to 7 (inclusive).
+   *
+   * ANSWER: See https://github.com/asarkar/adm/blob/master/src/main/scala/org/asarkar/adm/combinatorial/package.scala
+   */
+
+  /*
+   * Assume you have access to a function toss_biased() which returns 0 or 1 with a probability that's not 50-50
+   * (but also not 0-100 or 100-0). You do not know the bias of the coin.
+   *
+   * Write a function to simulate an unbiased coin toss.
+   *
+   * ANSWER: The solution to this can be attributed to mathematician John von Neumann.
+   *
+   * Let's assume that the probability of getting a heads is 0.7 and probability of getting a tails is 0.3.
+   * The probability of flipping a HT is P(heads) x P(tails) = 0.7 x 0.3 = .21
+   * The probability of flipping a TH is P(tails) x P(heads) = 0.3 x 0.7 = .21
+   *
+   * Thus, we throw the coin twice. If it’s TH, we say it's T. If it’s HT, we say it's H. If it's either HH or TT,
+   * we repeat the process.
+   */
+
+  /*
+   * Compute the first n Hamming number (https://en.wikipedia.org/wiki/Regular_number).
+   *
+   * ANSWER: Recall axiom 2 in Dijkstra's original paper (https://blog.asarkar.org/assets/docs/algorithms-curated/Hamming's%20Problem%20-%20Dijkstra.pdf):
+   * Axiom 2. If x is in the sequence, so is 2 * x, 3 * x, and 5 * x.
+   * After some whiteboarding, it became clear that the axiom 2 is not an invariant at each iteration of the algorithm,
+   * but actually the goal of the algorithm itself. At each iteration, we try to restore the condition in axiom 2.
+   * If last is the last value in the result sequence S, axiom 2 can simply be rephrased as:
+   * For some x in S, the next value in S is the minimum of 2x,  3x, and 5x, that is greater than last.
+   * Let's call this axiom 2'.
+   *
+   * Thus, if we can find x, we can compute the minimum of 2x, 3x, and 5x in constant time, and add it to S.
+   * But how do we find x? One approach is, we don't; instead, whenever we add a new element e to S, we compute 2e, 3e,
+   * and 5e, and add them to a minimum priority queue. Since this operations guarantees e is in S, simply extracting
+   * the top element of the PQ satisfies axiom 2'.
+   *
+   * This approach works, but the problem is that we generate a bunch of numbers we may not end up using. For example:
+   * +---------+--------------------------------+-------------+
+   * | #       | PQ                             | S           |
+   * +---------+--------------------------------+-------------+
+   * | initial | {2,3,5}                        | {1}         |
+   * +---------+--------------------------------+-------------+
+   * | 1       | {3,4,5,6 10}                   | {1,2}       |
+   * +---------+--------------------------------+-------------+
+   * | 2       | {4,5,6,6,9,10,15}              | {1,2,3}     |
+   * +---------+--------------------------------+-------------+
+   * | 3       | {5,6,6,8,9,10,12,15,20}        | {1,2,3,4}   |
+   * +---------+--------------------------------+-------------+
+   * | 4       | {6,6,8,9,10,10,12,15,15,20,25} | {1,2,3,4,5} |
+   * +---------+--------------------------------+-------------+
+   *
+   * If we want the 5th element in S (5), the PQ at that moment holds 6,6,8,9,10,10,12,15,15,20,25. Can we not waste
+   * this space?
+   *
+   * Turns out, we can do better. Instead of storing all these numbers, we simply maintain three counters for each of
+   * the multiples, namely, 2i, 3j, and 5k. These are candidates for the next number in S. When we pick one of them,
+   * we increment only the corresponding counter, and not the other two. By doing so, we are not eagerly generating
+   * all the multiples, thus solving the space problem with the first approach.
+   *
+   * Let's see a dry run for n = 8, i.e. the number 9. We start with 1, as stated by axiom 1 in Dijkstra's paper.
+   *
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | #       | i | j | k | 2i | 3j | 5k | S                 |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | initial | 1 | 1 | 1 | 2  | 3  | 5  | {1}               |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 1       | 1 | 1 | 1 | 2  | 3  | 5  | {1,2}             |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 2       | 2 | 1 | 1 | 4  | 3  | 5  | {1,2,3}           |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 3       | 2 | 2 | 1 | 4  | 6  | 5  | {1,2,3,4}         |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 4       | 3 | 2 | 1 | 6  | 6  | 5  | {1,2,3,4,5}       |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 5       | 3 | 2 | 2 | 6  | 6  | 10 | {1,2,3,4,5,6}     |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 6       | 4 | 2 | 2 | 8  | 6  | 10 | {1,2,3,4,5,6}     |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 7       | 4 | 3 | 2 | 8  | 9  | 10 | {1,2,3,4,5,6,8}   |
+   * +---------+---+---+---+----+----+----+-------------------+
+   * | 8       | 5 | 3 | 2 | 10 | 9  | 10 | {1,2,3,4,5,6,8,9} |
+   * +---------+---+---+---+----+----+----+-------------------+
+   *
+   * Notice that S didn't grow at iteration 6, because the minimum candidate 6 had already been added previously.
+   * To avoid this problem of having to remember all of the previous elements, we amend our algorithm to increment all
+   * the counters whenever the corresponding multiples are equal to the minimum candidate.
+   * That brings us to the following implementation.
+   *
+   * Time Complexity: O(n)
+   */
   def hamming(n: Int): Seq[BigInt] = {
     @tailrec
     def next(x: Int, factor: Int, xs: IndexedSeq[BigInt]): Int = {
@@ -205,9 +228,13 @@ package object numerics {
    * After n iterations, the probability that the i-th element was chosen, and not replaced by any of the [i+1..n]
    * elements is the product of the probabilities of choosing the i-th element, and not choosing any of the remaining
    * elements (product since these probabilities are independent).
-   * 1/i + (1 - (1/i+1)) + (1 - (1/i+2)) + ... + (1 - 1/n)
-   * = 1/i + i/(i+1) + (i+1)/(i+2) + ... + (n-1)/n
+   * 1/i x (1 - (1/i+1)) x (1 - (1/i+2)) x ... x (1 - 1/n)
+   * = 1/i x i/(i+1) x (i+1)/(i+2) x ... x (n-1)/n
    * = 1/n
+   *
+   * Thus, at the i-th iteration, we generate a random number in [0, i). If the randomly generated number is equal to
+   * i - 1 (the largest possible value in the range, probability 1/i), we select the current element. Otherwise, we
+   * retain the element selected in one of the previous iterations.
    *
    * c.f. https://en.wikipedia.org/wiki/Reservoir_sampling
    * https://kapilddatascience.wordpress.com/2015/06/11/how-to-randomly-pick-k-elements-from-an-infinite-stream-with-equal-probability-a-k-a-reservoir-sampling/
@@ -248,4 +275,37 @@ package object numerics {
    * } while r > 5
    * return r;
    */
+
+  /*
+   * Suppose you have a multiplication table that is N by N. That is, a 2D array where the value at the i-th row and
+   * j-th column is (i + 1) * (j + 1) (if 0-indexed) or i * j (if 1-indexed).
+   *
+   * Given integers N and X, write a function that returns the number of times X appears as a value in an N by N
+   * multiplication table.
+   *
+   * For example, given N = 6 and X = 12, you should return 4, since the multiplication table looks like this:
+   * | 1 | 2 | 3 | 4 | 5 | 6 |
+   * | 2 | 4 | 6 | 8 | 10 | 12 |
+   * | 3 | 6 | 9 | 12 | 15 | 18 |
+   * | 4 | 8 | 12 | 16 | 20 | 24 |
+   * | 5 | 10 | 15 | 20 | 25 | 30 |
+   * | 6 | 12 | 18 | 24 | 30 | 36 |
+   *
+   * And there are 4 12's in the table.
+   *
+   * ANSWER: We simply need to find all the divisors of x. If the (divisor, quotient) pair is within the bounds of
+   * the table, by symmetry the (quotient, divisor) pair is within the bounds too, so each pair is counted twice.
+   * The exception is when both items are equal, like (10, 10).
+   * We don't need to check beyond the square root of x, because if x = a * b, and if both 'a' and 'b' were greater
+   * than the square root of n, then a * b would be greater than x. We simply need to find the smaller of 'a' and 'b',
+   * since the other one would be greater than the square root.
+   */
+  def divisors(n: Int, x: Int): Int = {
+    (1 to math.sqrt(x).toInt)
+      .withFilter(x % _ == 0)
+      .map(i => (i, x / i))
+      .filter(a => a._1 <= n && a._2 <= n)
+      .map(a => if (a._1 == a._2) 1 else 2)
+      .sum
+  }
 }

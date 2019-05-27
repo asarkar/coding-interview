@@ -1,4 +1,4 @@
-package org.asarkar.codinginterview.stacks
+package org.asarkar.codinginterview.stacksnqueues
 
 import org.scalatest.FlatSpec
 import org.scalatest.Matchers._

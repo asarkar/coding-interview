@@ -1,5 +1,7 @@
 package org.asarkar.codinginterview
 
+import scala.annotation.tailrec
+
 package object bits {
   /*
    * Given an array of integers where every integer occurs three times except for one integer, which only occurs once,
@@ -35,11 +37,8 @@ package object bits {
   def loneInt(xs: Seq[Int], n: Int): Int = {
     val loner = xs
       .foldLeft(Array.ofDim[Int](Integer.SIZE)) { (freq, i) =>
-        val bin = i.toBinaryString
-        bin
-          .zipWithIndex
-          .filter(_._1.asDigit == 1)
-          .map(x => bin.length - 1 - x._2)
+        freq.indices
+          .filter(j => (i >> j & 1) == 1)
           .foreach(freq(_) += 1)
         freq
       }
@@ -52,5 +51,58 @@ package object bits {
     // binary strings with a leftmost 1-bit - a NumberFormatException is thrown. We parse it into a long and then take
     // the int value
     java.lang.Long.parseLong(loner, 2).intValue()
+  }
+
+  /*
+   * Given three 32-bit integers x, y, and b, return x if b is 1 and y if b is 0, using only mathematical or bit
+   * operations. You can assume b can only be 1 or 0.
+   */
+  def thisOrThat(x: Int, y: Int, b: Int): Int = {
+    val c = -b // if b = 1, -1 is all 1's
+    (x & c) | (y & ~c)
+  }
+
+  /*
+   * A character in UTF8 can be from 1 to 4 bytes long, subjected to the following rules:
+   * For 1-byte character, the first bit is a 0, followed by its unicode code.
+   * For n-bytes character, the first n-bits are all one's, the n+1 bit is 0, followed by n-1 bytes with most
+   * significant 2 bits being 10.
+   *
+   * Given an array of integers representing the data, return whether it is a valid utf-8 encoding.
+   * Note: The input is an array of integers. Only the least significant 8 bits of each integer is used to store the
+   * data. This means each integer represents only 1 byte of data.
+   *
+   * Example 1:
+   * data = [197, 130, 1], which represents the octet sequence: 11000101 10000010 00000001.
+   * Return true.
+   * It is a valid utf-8 encoding for a 2-bytes character followed by a 1-byte character.
+   *
+   * Example 2:
+   * data = [235, 140, 4], which represented the octet sequence: 11101011 10001100 00000100.
+   * Return false.
+   * The first 3 bits are all one's and the 4th bit is 0 means it is a 3-bytes character.
+   * The next byte is a continuation byte which starts with 10 and that's correct.
+   * But the second continuation byte does not start with 10, so it is invalid.
+   */
+  def isValidUtf8(xs: Seq[Int]): Boolean = {
+    @tailrec
+    def isValid(start: Int): Boolean = {
+      val n = xs.length
+
+      if (start >= n) true
+      else if ((xs(start) & (1 << 7)) == 0) isValid(start + 1) // 0xxxxxxx, 1-byte
+      else {
+        val i = if ((xs(start) >> 5) == 6) 2 // 110xxxxx, 2-bytes
+        else if ((xs(start) >> 4) == 14) 3 // 1110xxxx, 3-bytes
+        else if ((xs(start) >> 3) == 30) 4 // 11110xxx, 4-bytes
+        else -1 // invalid
+
+        if (i < 2 || (start + i - 1) >= n) false // invalid or not enough continuation char
+        else (1 until i).forall(j => (xs(start + j) >> 6) == 2) && // 10xxxxxx, continuation char
+          isValid(start + i)
+      }
+    }
+
+    isValid(0)
   }
 }

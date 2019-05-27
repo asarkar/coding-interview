@@ -206,4 +206,138 @@ package object bintree {
 
     loop(root, None, None)
   }
+
+  /*
+   * Given the root of a binary tree, return a deepest node. For example, in the following tree, return d.
+   */
+  def maxDepth(root: Node[Integer]): Int = {
+    def loop(node: Node[Integer], currD: Int, maxD: Int): (Int, Int) = {
+      if (node == null) (currD - 1, maxD)
+      else {
+        val l = loop(node.getLeft, currD + 1, node.getDatum)
+        val r = loop(node.getRight, currD + 1, node.getDatum)
+        if (l._1 > r._1) l else r
+      }
+    }
+
+    loop(root, 1, -1)._2
+  }
+
+  /*
+   * Determine whether a tree is a valid binary search tree.
+   *
+   * A binary search tree is a tree with two children, left and right, and satisfies the constraint that the key in the
+   * left child must be less than or equal to the root and the key in the right child must be greater than or equal to
+   * the root.
+   *
+   * ANSWER: It is not sufficient to check that the values at the left and right nodes are less than, and greater than,
+   * the value at the node, respectively. Every value in the left subtree must be less than the value at the node.
+   * Similarly, every value at the right subtree must be greater than the value at the node.
+   */
+  def isValidBST(root: Node[Integer]): Boolean = {
+    def isValid(min: Double, max: Double, node: Node[Integer]): Boolean = {
+      if (node == null) true
+      else if (node.getDatum <= min || node.getDatum >= max) false
+      else isValid(min, node.getDatum.toDouble, node.getLeft) && isValid(node.getDatum.toDouble, max, node.getRight)
+    }
+
+    isValid(Double.NegativeInfinity, Double.PositiveInfinity, root)
+  }
+
+  /*
+   * Given a tree, return the size of the largest tree/subtree that is a BST.
+   *
+   * Example:
+   *
+   *           5
+   *      +--------+
+   *     2         4
+   * +--------+
+   * 1        3
+   *
+   * Output: 3 (subtree rooted at 2).
+   *
+   * Another example:
+   *
+   *             50
+   *    +-----------------+
+   *    |                 |
+   *    +                 +
+   *   30                 60
+   * +--------+      +-----------+
+   * 10       20     45          70
+   *                         +--------+
+   *                         65       80
+   *
+   * Output: 5 (subtree rooted at 60).
+   *
+   * ANSWER: We solve this problem in a bottom-up manner. For each node, we pass the following values up to its parent:
+   * (isBST, sizeOfLargestBSTFoundSoFar, maxValueInLeftSubtree, minValueInRightSubtree).
+   *
+   * If the tree rooted at the current node is a BST, the size of the largest BST found so far is the size of the
+   * current tree, which, in turn, is the size of the left and right subtrees plus 1. If it's not a BST, the size of
+   * the largest BST found so far is passed up unchanged.
+   *
+   * The min and max values are used to test if the current tree is a BST. If the current tree is not a BST, none of
+   * the trees higher up can be BST either, so the min and the max values are set to the largest and the smallest
+   * possible, respectively.
+   *
+   * Time complexity: O(n), since each node is visited exactly once.
+   */
+  def largestBSTSize(root: Node[Integer]): Int = {
+    def loop(node: Node[Integer]): (Boolean, Int, Int, Int) = {
+      if (node == null) (true, 0, Int.MinValue, Int.MaxValue)
+      else {
+        val l = loop(node.getLeft)
+        val r = loop(node.getRight)
+
+        val bst = l._1 && r._1 && node.getDatum >= l._3 && node.getDatum <= r._4
+        val size = if (bst) 1 + l._2 + r._2 else math.max(l._2, r._2)
+        val min: Int = if (bst) node.getDatum else Int.MaxValue
+        val max: Int = if (bst) node.getDatum else Int.MinValue
+
+        (bst, size, min, max)
+      }
+    }
+
+    loop(root)._2
+  }
+
+  /*
+   * Given a binary tree of integers, find the maximum path sum between two nodes. The path must go through at least
+   * one node, and does not need to go through the root.
+   *
+   * ANSWER: Although the question doesn't clearly say, by path, it means a simple linear path consisting of contiguous
+   * nodes. In other words, we should be able to trace this path on paper from one end to the other without
+   * backtracking. This implies there should be no splitting at any point of the path. Since we are working with a
+   * binary tree, the maximum path will have a root, and include none, one, or both of the subtrees.
+   *
+   * At each node, there are three possibilities:
+   * 1. This node is on the maximum path, and is NOT the root of the tree that contains the maximum path. Since we are
+   *    looking for contiguous nodes only, the root must be higher up. The maximum path consists of the node, and
+   *    possibly one of its subtrees, but not both (since this node isn't the root).
+   * 2. This node is on the maximum path, and is the root of the tree that contains the maximum path. The maximum path
+   *    consists of the node, and possibly both of its subtrees (since this node is the root).
+   * 3. This node is not on the maximum path.
+   *
+   * The answer is the maximum of the values from all case 2.
+   *
+   * Time complexity: O(n), since we visit all nodes once.
+   */
+  def maxPathSum(root: Node[Integer]): Int = {
+    def loop(node: Node[Integer], max: Int): (Int, Int) = {
+      if (node == null) (0, max)
+      else {
+        val l = loop(node.getLeft, max)
+        val r = loop(node.getRight, max)
+
+        val pathMax = math.max(node.getDatum, node.getDatum + math.max(l._1, r._1))
+        val treeMax = Seq(l._2, r._2, pathMax, node.getDatum + l._1 + r._1).max
+
+        (pathMax, treeMax)
+      }
+    }
+
+    loop(root, if (root == null) 0 else root.getDatum)._2
+  }
 }

@@ -7,12 +7,8 @@ import org.scalatest.prop.TableDrivenPropertyChecks
 import scala.collection.JavaConverters._
 
 class BintreeSpec extends FlatSpec with TableDrivenPropertyChecks {
-  "bintree" should "construct a binary tree from the given array" in {
-    val root = new Node[Integer](Array[Integer](6, 5, 4, 3, 2, 1))
-  }
-
-  it should "do a Morris inorder traversal" in {
-    val xs = Array[Integer](6, 5, 4, 3, 2, 1)
+  "bintree" should "do a Morris inorder traversal" in {
+    val xs = Array[Integer](1, 2, 3, 4, 5, 6)
     val root = new Node[Integer](xs)
     BinTrees.morrisInorder(root).asScala should contain theSameElementsInOrderAs Seq(4, 2, 5, 1, 6, 3)
 
@@ -228,6 +224,78 @@ class BintreeSpec extends FlatSpec with TableDrivenPropertyChecks {
 
     forAll(data) { (i, floor, ceil) =>
       floorAndCeiling(eight, i) shouldBe(floor, ceil)
+    }
+  }
+
+  it should "return a deepest node" in {
+    val d = new Node[Integer](null, null, 'd'.toInt)
+    val b = new Node[Integer](d, null, 'b'.toInt)
+    val c = new Node[Integer](null, null, 'c'.toInt)
+    maxDepth(new Node[Integer](b, c, 'a'.toInt)) shouldBe d.getDatum
+  }
+
+  it should "invert a tree" in {
+    val one = new Node[Integer](null, null, 1)
+    val three = new Node[Integer](null, null, 3)
+    val two = new Node[Integer](one, three, 2)
+    val six = new Node[Integer](null, null, 6)
+    val nine = new Node[Integer](null, null, 9)
+    val seven = new Node[Integer](six, nine, 7)
+    val four = new Node[Integer](two, seven, 4)
+
+    val inverted = BinTrees.invertTree(four)
+    BinTrees.morrisInorder[Integer](inverted).asScala should contain theSameElementsInOrderAs
+      IndexedSeq[Integer](9, 7, 6, 4, 3, 2, 1)
+  }
+
+  it should "determine whether a tree is a valid binary search tree" in {
+    isValidBST(BinTrees.buildBST[Integer](Array[Integer](2, 1, 3))) shouldBe true
+    val six = new Node[Integer](null, null, 6)
+    val twenty = new Node[Integer](null, null, 20)
+    val fifteen = new Node[Integer](six, twenty, 15)
+    val five = new Node[Integer](null, null, 5)
+    val ten = new Node[Integer](five, fifteen, 10)
+
+    isValidBST(ten) shouldBe false
+  }
+
+  it should "the size of the largest subtree that is a BST" in {
+    val one = new Node[Integer](null, null, 1)
+    val three = new Node[Integer](null, null, 3)
+    val two = new Node[Integer](one, three, 2)
+    val four = new Node[Integer](null, null, 4)
+    val five = new Node[Integer](two, four, 5)
+
+    largestBSTSize(five) shouldBe 3
+    largestBSTSize(one) shouldBe 1
+    largestBSTSize(two) shouldBe 3
+
+    val ten = new Node[Integer](null, null, 10)
+    val twenty = new Node[Integer](null, null, 20)
+    val thirty = new Node[Integer](ten, twenty, 30)
+
+    val sixtyFive = new Node[Integer](null, null, 65)
+    val eighty = new Node[Integer](null, null, 80)
+    val seventy = new Node[Integer](sixtyFive, eighty, 70)
+
+    val fortyFive = new Node[Integer](null, null, 45)
+    val sixty = new Node[Integer](fortyFive, seventy, 60)
+
+    val fifty = new Node[Integer](thirty, sixty, 50)
+
+    largestBSTSize(fifty) shouldBe 5
+  }
+
+  it should "find the maximum path sum" in {
+    val data = Table(
+      ("root", "sum"),
+      (new Node[Integer](Array[Integer](-10, 9, 20, null, null, 15, 7)), 42),
+      (new Node[Integer](Array[Integer](5, 4, 8, 11, null, 13, 4, 7, 2, null, null, null, 1)), 49),
+      (new Node[Integer](Array[Integer](-3)), -3)
+    )
+
+    forAll(data) { (root, sum) =>
+      maxPathSum(root) shouldBe sum
     }
   }
 }

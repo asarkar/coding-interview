@@ -194,4 +194,44 @@ package object sorting {
 
     mergeSort(xs)._2
   }
+
+  /*
+   * Given an array A, we can perform a pancake flip: We choose some positive integer k <= A.length, then reverse the
+   * order of the first k elements of A.  We want to perform zero or more pancake flips (doing them one after another
+   * in succession) to sort the array A.
+   * This is also known as pancake sort.
+   *
+   * ANSWER: The idea is to progressively move the largest element in a range to the end. At each iteration, we find
+   * the index of the largest element. We then flip the elements up to and including the largest element, thus putting
+   * it in the front. We then flip the whole range, putting the largest element at the end. We decrement the size of
+   * range, and repeat, until there is just one element left in the range.
+   * Time complexity: In the worst case, the array is reverse sorted, and the largest element is always at the front of
+   * the range. The number of reversals performed each time is the size of the range.
+   * Time complexity: n + (n - 1) + (n - 2) + ... + 1
+   * = n(n + 1)/2
+   * = O(n^2)
+   */
+  def pancakeSort(a: Array[Int]): Unit = {
+    @tailrec
+    def sort(size: Int): Unit = {
+      if (size > 0) {
+        val maxIdx = (0 to size)
+          .maxBy(a)
+        if (maxIdx > 0) reverse(maxIdx)
+        reverse(size)
+        sort(size - 1)
+      }
+    }
+
+    def reverse(hi: Int): Unit = {
+      (0 to hi / 2)
+        .foreach { i =>
+          val temp = a(i)
+          a(i) = a(hi - i)
+          a(hi - i) = temp
+        }
+    }
+
+    sort(a.length - 1)
+  }
 }

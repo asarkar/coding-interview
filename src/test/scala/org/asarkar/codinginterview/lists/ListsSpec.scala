@@ -87,4 +87,20 @@ class ListsSpec extends FlatSpec with TableDrivenPropertyChecks {
 
     Lists.getIntersectionNode(new Node[Integer](1), new Node[Integer](2)) shouldBe null
   }
+
+  it should "merge two sorted lists" in {
+    val l1: Node[Integer] = new Node[Integer](Seq[Integer](1, 3, 4).asJava)
+    val l2: Node[Integer] = new Node[Integer](Seq[Integer](1, 2, 4).asJava)
+
+    Lists.merge2Lists(l1, l2).toList.asScala shouldBe sorted
+    Lists.merge2Lists(new Node[Integer](null, 0), null).toList.asScala shouldBe sorted
+  }
+
+  it should "merge k sorted lists" in {
+    val l1: Node[Integer] = new Node[Integer](Seq[Integer](1, 4, 5).asJava)
+    val l2: Node[Integer] = new Node[Integer](Seq[Integer](1, 3, 4).asJava)
+    val l3: Node[Integer] = new Node[Integer](Seq[Integer](2, 6).asJava)
+
+    Lists.mergeKLists(Array(l1, l2, l3)).toList.asScala shouldBe sorted
+  }
 }

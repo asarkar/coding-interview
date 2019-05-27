@@ -103,4 +103,31 @@ package object hashtables {
       }
     wall.size - maxNumBricksEnding
   }
+
+  /*
+   * Given an unsorted array of integers, find the length of the longest consecutive elements sequence.
+   *
+   * For example, given [100, 4, 200, 1, 3, 2], the longest consecutive element sequence is [1, 2, 3, 4].
+   * Return its length: 4.
+   *
+   * Your algorithm should run in O(n) complexity.
+   *
+   * ANSWER: One way to solve this problem is by sorting the array, and then going over the sorted array keeping
+   * track of the longest sequence. That takes O(n log n) time.
+   *
+   * A cleverer solution is to convert the array into a set, find the beginning of consecutive elements sequence, and
+   * keep track of the longest one. We find the beginning of a sequence by checking if the current number - 1 is
+   * present in the set.
+   * This solution checks each element only once, thus time complexity is O(n).
+   */
+  def longestConsecutive(xs: Seq[Int]): Int = {
+    val ys = xs.toSet
+
+    ys
+      .filterNot(i => ys.contains(i - 1))
+      .map(Stream.from(_)
+        .takeWhile(ys.contains)
+        .size)
+      .max
+  }
 }

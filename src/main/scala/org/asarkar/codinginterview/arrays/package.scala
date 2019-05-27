@@ -1,6 +1,7 @@
 package org.asarkar.codinginterview
 
 import scala.annotation.tailrec
+import scala.collection.Searching._
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
 
@@ -665,5 +666,133 @@ Hence in all cases the number of squares touched is
     }
 
     math.max(x._1 * x._2 * x._3, x._4 * x._5 * x._1)
+  }
+
+  /*
+   * Given an array of numbers, find the length of the longest increasing subsequence in the array. The subsequence
+   * does not necessarily have to be contiguous.
+   *
+   * For example, given the array [0, 8, 4, 12, 2, 10, 6, 14, 1, 9, 5, 13, 3, 11, 7, 15], the longest increasing
+   * subsequence has length 6: it is 0, 2, 6, 9, 11, 15.
+   *
+   * ANSWER: One solution that comes to might is keeping an array dp, where dp[i] is the length of the longest
+   * increasing subsequence ending at i.
+   * dp[i] = max {dp[j]}, 0 <= j < i, nums[j] < nums[i].
+   *
+   * Its easy to see that this is a O(n^2) algorithm. Can we do better?
+   *
+   * Yes, we can! What if, for each element, we maintain a sorted list that ends with that element? Then the longest
+   * increasing subsequence is simply the longest among all such sequences.
+   *
+   * For example, let the input array be [3, 1, 5, 2, 6, 4, 9]. S be a list, and max = -1 be the length of the longest
+   * increasing subsequence (actually the last index of the longest increasing subsequence, as shown below).
+   *
+   * 3: append to S. S = [3], max = max{-1, 0} = 0.
+   * 1: find the insertion point for 1. S = [1, 3], max = max{0, 0} = 0.
+   * 5: append to S. S = [1, 3, 5], max {0, 2} = 2.
+   * 2: find the insertion point for 2. S = [1, 2, 3, 5], max = max{2, 1} = 2.
+   * ...
+   *
+   * In the end, we return max + 1.
+   *
+   * Since S is sorted, we can use binary search to find the insertion points. Overall time complexity: O(n log(n)).
+   */
+  def longestIncSubseq(xs: IndexedSeq[Int]): Int = {
+    if (xs.size <= 1) xs.size
+    else {
+      val subseq = ListBuffer(xs.head)
+
+      xs.tail
+        .foldLeft(-1) { (max, i) =>
+          val last = subseq.last
+
+          val insertionIndex = if (i > last) (subseq += i).size - 1
+          else {
+            val j = subseq.search(i).insertionPoint
+            subseq(j) = i
+            j
+          }
+
+          math.max(max, insertionIndex + 1)
+        }
+    }
+  }
+
+  /*
+   * You are given an N by M 2D matrix of lowercase letters. Determine the minimum number of columns that can be removed
+   * to ensure that each row is ordered from top to bottom lexicographically. That is, the letter at each column is
+   * lexicographically later as you go down each row. It does not matter whether each row itself is ordered
+   * lexicographically.
+   *
+   * For example, given the following table:
+   * cba
+   * daf
+   * ghi
+   *
+   * This is not ordered because of the a in the center. We can remove the second column to make it ordered:
+   * ca
+   * df
+   * gi
+   *
+   * So your function should return 1, since we only needed to remove 1 column.
+   *
+   * As another example, given the following table:
+   * abcdef
+   *
+   * Your function should return 0, since the rows are already ordered (there's only one row).
+   *
+   * As another example, given the following table:
+   * zyx
+   * wvu
+   * tsr
+   *
+   * Your function should return 3, since we would need to remove all the columns to order it.
+   *
+   * ANSWER: Probably the simplest question ever asked by Google :) Check characters in each row that are in the same
+   * columns; terminate early if necessary.
+   */
+  def minColToRemove(xs: IndexedSeq[IndexedSeq[Char]]): Int = {
+    xs match {
+      case first +: next +: rest =>
+        val c = first.zip(next)
+          .count(x => x._1 > x._2)
+        c + (if (c < first.size) minColToRemove(rest) else 0)
+      case _ => 0
+    }
+  }
+
+  /* Given an array of integers, write a function to determine whether the array could become non-decreasing by
+   * modifying at most 1 element.
+   *
+   * For example, given the array [10, 5, 7], you should return true, since we can modify the 10 into a 1 to make the
+   * array non-decreasing.
+   *
+   * Given the array [10, 5, 1], you should return false, since we can't modify any one element to get a non-decreasing
+   * array.
+   *
+   * ANSWER: Let k be the unique index for which xs(k) > xs(k + 1). If this is not unique or doesn't exist, the answer
+   * is false or true respectively. We analyze the following cases:
+   *
+   * - if k = 0, then we could make the array good by setting xs(p) = xs(p + 1).
+   * - if k = xs.size - 2, then we could make the array good by setting xs(k + 1) = xs(k).
+   * - otherwise, xs is defined for the range [k - 1, k + 2], and:
+   * -- we could change xs(k) to be between xs(k - 1) and xs(k + 1) if possible, or;
+   * -- we could change xs(k + 1) to be between xs(k) and xs(k + 2) if possible.
+   *
+   * Time complexity: O(n).
+   */
+  def checkPossibility(xs: IndexedSeq[Int]): Boolean = {
+    @tailrec
+    def loop(k: Int, i: Int): Int = {
+      if (i > xs.size - 2) k
+      else if (xs(i) > xs(i + 1)) {
+        if (k >= 0) xs.size
+        else loop(i, i + 1)
+      }
+      else loop(k, i + 1)
+    }
+
+    val k = loop(-1, 0)
+    xs.isDefinedAt(k) && (k <= 0 || k == xs.size - 2 || xs(k - 1) <= xs(k + 1) || xs(k) <= xs(k + 2))
   }
 }

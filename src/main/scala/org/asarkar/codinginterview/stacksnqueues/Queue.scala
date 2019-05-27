@@ -1,4 +1,4 @@
-package org.asarkar.codinginterview.stacks
+package org.asarkar.codinginterview.stacksnqueues
 
 import scala.collection.mutable.ListBuffer
 

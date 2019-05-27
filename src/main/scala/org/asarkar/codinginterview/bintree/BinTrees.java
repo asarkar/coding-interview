@@ -99,4 +99,36 @@ public class BinTrees {
 
         return list;
     }
+
+    /*
+     * Invert a binary tree.
+     *
+     * For example, given the following tree:
+     *
+     *       a
+     *     +  +
+     *    b     c
+     * +----+  +
+     * d    e f
+     *
+     * should become:
+     *
+     *      a
+     *   ++ +--+
+     *  c       b
+     *   +    +   +
+     *   f   e     d
+
+     */
+    static <T> Node<T> invertTree(Node<T> root) {
+        if (root == null) {
+            return root;
+        }
+
+        Node<T> left = invertTree(root.left);
+        root.left = invertTree(root.right);
+        root.right = left;
+
+        return root;
+    }
 }

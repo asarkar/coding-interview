@@ -1,7 +1,5 @@
 package org.asarkar.codinginterview.bintree;
 
-import java.util.Arrays;
-
 public class Node<T> {
     Node<T> left;
     Node<T> right;
@@ -14,7 +12,6 @@ public class Node<T> {
     }
 
     Node(T[] data) {
-        Arrays.sort(data);
         Node<T> root = buildTree(0, data);
         this.left = root.left;
         this.right = root.right;
@@ -36,8 +33,8 @@ public class Node<T> {
     private Node<T> buildTree(int i, T[] data) {
         // In a complete binary tree, half of the nodes are leaves
         if (i > data.length / 2 && i < data.length) {
-            return new Node<>(null, null, data[i]);
-        } else if (i >= data.length) {
+            return data[i] == null ? null : new Node<>(null, null, data[i]);
+        } else if (i >= data.length || data[i] == null) {
             return null;
         }
 

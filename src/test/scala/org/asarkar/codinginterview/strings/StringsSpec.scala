@@ -122,4 +122,12 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
     maxXor(IndexedSeq(4, 6, 7)) shouldBe 3
     maxXor(IndexedSeq(3, 10, 5, 25, 2, 8)) shouldBe 28
   }
+
+  it should "find all the starting indices of the pattern in the string" in {
+    findAllOccurrences("abracadabra", "abr") should contain theSameElementsInOrderAs Seq(0, 7)
+  }
+
+  it should "determine the winning letters" in {
+    winningLettersForGhost(Seq("cat", "calf", "dog", "bear")) should contain theSameElementsAs Set('b')
+  }
 }

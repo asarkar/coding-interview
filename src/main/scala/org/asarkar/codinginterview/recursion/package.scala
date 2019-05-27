@@ -7,45 +7,6 @@ import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
 package object recursion {
-  /*
-   * How many ways to decode this message? For example, given encoding a = 1, b = 2, c = 3, ..., z = 26, what does the
-   * encoded string '12' represent? It could be 'ab' or 'l'. For simplicity, assume that the encoded string contains
-   * only digits 0-9. Can you solve this in O(n) time, where n is the length of the encoded string?
-   *
-   * ANSWER: Observe that the number of ways is simply the number of leaves in the recursion tree. If we represent
-   * the number of ways to decode a message of length n to be N(n), observe that N(n) = N(n - 1) + N(n - 2),
-   * where the second term is present only if the first two characters converted to a digit is smaller than the maximum
-   * digit in the encoding. For the given question, the maximum digit is 26 corresponding to the letter 'z'. Similarly,
-   * if the message starts with a digit smaller than the minimum digit in the encoding (1, corresponding to 'a'), there
-   * is no way to decode it.
-   *
-   * To avoid creating new strings, we introduce 'i' as the number of characters to consider from the right. Since the
-   * subproblems are overlapping (notice the recurrence above, it looks very much like Fibonacci), we also memoize the
-   * intermediate results to avoid recalculations.
-   */
-  def numWaysToDecode(msg: String): Int = {
-    val dp = Array.fill[Int](msg.length + 1)(-1)
-    val (lowest, highest) = (1, 26)
-
-    def loop(i: Int): Int = {
-      if (i == 0) 1
-      else {
-        val j = msg.length - i
-
-        if (msg(j).asDigit < lowest) 0
-        else if (dp(i) >= 0) dp(i)
-        else {
-          dp(i) = loop(i - 1) +
-            (if (msg.isDefinedAt(j + 1) && msg.substring(j, j + 2).toInt <= highest) loop(i - 2)
-            else 0)
-
-          dp(i)
-        }
-      }
-    }
-
-    loop(msg.length)
-  }
 
   //  val hamming: Stream[BigInt] = {
   //    // #::[B >: A](hd: B): Stream[B]
@@ -521,5 +482,202 @@ package object recursion {
 
     if (visit(0, 0, 1)) moves.map(_.toIndexedSeq).toIndexedSeq
     else IndexedSeq.empty
+  }
+
+  /*
+   * Given an array of numbers of length n, find both the minimum and the maximum using less than 2 * (n - 2)
+   * comparisons.
+   *
+   * ANSWER: Divide and conquer: For an array of size n, we break down the problem into two subproblems of size n/2,
+   * plus two additional comparisons.
+   * T(n) = 2T(n/2) + 2 when n > 2
+   *      = 1 when n = 2
+   * T(4) = 2T(2) + 2 = 2 * 1 + 2 = 4 + 0
+   * T(8) = 2T(4) + 2 = 2 * 4 + 2 = 8 + 2
+   * T(16) = 2T(8) + 2 = 2(8 + 2) + 2 = 16 + 6
+   * T(32) = 2T(16) + 2 = 2(16 + 6) + 2 = 32 + 14
+   *
+   * T(k) = k + k / 2 - 2 when k = 2^i
+   *      = 3 * k / 2 - 2
+   *      = 3 * 2^(i - 1) - 2   (A)
+   * 2 * (n - 2) = 2^(i + 1) - 2^2 when n = 2^i
+   *             = 4 * 2^(i - 1) - 2^2   (B)
+   *
+   * for i = 2, A = 6 - 2 = 4, B = 8 = 4 = 4
+   * for i = 3, A = 12 = 2 = 10, B = 16 - 4 = 12
+   *
+   * Therefore, for n a power of 2 and n >= 4, we have shown that the upper bound on the number of comparisons is
+   * 2 * (n - 2).
+   */
+  def minMax(xs: IndexedSeq[Int]): (Int, Int) = {
+    def loop(lo: Int, hi: Int): (Int, Int) = {
+      if (lo == hi) (xs(lo), xs(lo))
+      else if (hi - lo == 1) if (xs(lo) < xs(hi)) (xs(lo), xs(hi)) else (xs(hi), xs(lo))
+      else {
+        val mid = lo + (hi - lo) / 2
+        val (lMin, lMax) = loop(lo, mid)
+        val (rMin, rMax) = loop(mid + 1, hi)
+
+        (math.min(lMin, rMin), math.max(lMax, rMax))
+      }
+    }
+
+    loop(0, xs.size - 1)
+  }
+
+  /*
+   * You are playing the following Nim Game with your friend: There is a heap of stones on the table, each time one of
+   * you take turns to remove 1 to 3 stones. The one who removes the last stone will be the winner. You will take the
+   * first turn to remove the stones.
+   *
+   * Both of you are very clever and have optimal strategies for the game. Write a function to determine whether you
+   * can win the game given the number of stones in the heap.
+   *
+   * Example:
+   * Input: 4
+   * Output: false
+   * Explanation: If there are 4 stones in the heap, then you will never win the game; no matter 1, 2, or 3 stones you
+   * remove, the last stone will always be removed by your friend.
+   *
+   * ANSWER: As in any adversarial game, player 1 wins if he can play a move after which player 2 cannot win.
+   *
+   * Case 1: For n = 1, 2 or 3, player 1 wins by removing all the stones.
+   * Case 2: For n = 4, no matter how many stones player 1 removes, player 2 falls in case 1, and wins. Thus, player 1
+   * can't win.
+   * Case 3: For n = 5, 6, or 7, player 1 can remove 1, 2, or 3 stone to put player 2 in case 2. Player 1 wins.
+   * Case 4: For n = 8, no matter how many stones player 1 removes, player 2 falls in case 3, and wins. Thus, player 1
+   * can't win.
+   *
+   * Proceeding this way, we see that for n any multiple of 4, player 1 can't win.
+   */
+  def canWinNim(n: Int): Boolean = {
+    n % 4 != 0
+  }
+
+  /*
+   * Given an Android 3x3 key lock screen and an integer n, where 1 <= n <= 9, count the total number of valid unlock
+   * patterns of the Android lock screen.
+   *
+   * Rules for a valid pattern:
+   * - All of its keys must be distinct.
+   * - It must not connect two keys by jumping over a third key, unless that key has already been used.
+   *
+   * For example, n = 4, 4-2-1-7 is a valid pattern, while n = 3, 2-1-7 is not (jumps over 4).
+   *
+   * ANSWER: We solve this by backtracking.
+   */
+  def numUnlockCombinations(n: Int): Int = {
+    val jumps = Map(
+      (1, 3) -> 2, (1, 7) -> 4, (1, 9) -> 5,
+      (2, 8) -> 5,
+      (3, 1) -> 2, (3, 7) -> 5, (3, 9) -> 6,
+      (4, 6) -> 5,
+      (6, 4) -> 5,
+      (7, 1) -> 4, (7, 3) -> 5, (7, 9) -> 8,
+      (8, 2) -> 5,
+      (9, 1) -> 5, (9, 3) -> 6, (9, 7) -> 8
+    )
+    val visited = mutable.Set.empty[Int]
+
+    def numPaths(cur: Int, rem: Int): Int = {
+      if (rem == 1) 1
+      else {
+        (1 to 9)
+          .withFilter(i => !visited.contains(i) && (!jumps.contains((cur, i)) || visited.contains(jumps((cur, i)))))
+          .map { i =>
+            visited.add(i)
+            val count = numPaths(i, rem - 1)
+            visited.remove(i)
+            count
+          }
+          .sum
+      }
+    }
+
+    visited ++= Seq(1, 2, 5)
+    4 * numPaths(1, n) + 4 * numPaths(2, n) + numPaths(2, n)
+  }
+
+  /*
+   * Given a mapping of digits to letters (as in a phone number), and a digit string, return all possible letters the
+   * number could represent. You can assume each valid number in the mapping is a single digit.
+   * 
+   * For example if {"2": ["a", "b", "c"], 3: ["d", "e", "f"], ...} then "23" should return
+   * ["ad", "ae", "af", "bd", "be", "bf", "cd", "ce", "cf"].
+   *
+   * ANSWER: Take the Cartesian product. Time complexity: If each mapping is of size n, O(n^2).
+   */
+  def allPossibleLetters(str: String, mapping: Map[Int, Seq[Char]]): Seq[String] = {
+    def loop(prefix: String, i: Int): Seq[String] = {
+      str.lift(i)
+        .map(j => mapping(j.asDigit).flatMap(ch => loop(s"$prefix$ch", i + 1)))
+        .getOrElse(Seq(prefix))
+    }
+
+    loop("", 0)
+  }
+
+  /*
+   * A cryptarithmetic puzzle is a mathematical game where the digits of some numbers are represented by letters, and
+   * you must figure out the correct mapping. Each letter represents a unique digit.
+   * For example, a puzzle of the form
+   *    SEND
+   * +  MORE
+   * -------
+   *   MONEY
+   *
+   * may have the solution: {'S': 9, 'E' : 5, 'N' : 6, 'D' : 7, 'M' : 1, 'O' : 0, 'R' : 8, 'Y' : 2}.
+   *
+   * ANSWER: Classic backtracking problem. We start from the LSD, and column by column, for each letter that is not yet
+   * assigned a digit, create a mapping and check if the solution is valid so far. If yes, we proceed to the next
+   * column. If not, we backtrack.
+   * Just like grade school arithmetic, we line up the summands by left padding with space if necessary.
+   *
+   * Time complexity: If k is the number of distinct letters, we may recurse k! times (k choices for the first letter,
+   * k - 1 for the second, so on and so forth). Outside of recursion, we validate the solution up to the current column,
+   * which is 1 + 2 + ... + n, or O(n^2) overall (n is the number of letters in the sum).
+   * Total time complexity: O(k!) + O(n^2).
+   */
+  def cryptarithmeticSoln(puzzle: Seq[String]): Map[Char, Int] = {
+    val s = puzzle.tail.last
+    val m = s"%${s.length}s".format(puzzle.head)
+    val n = s"%${s.length}s".format(puzzle.tail.head)
+
+    def isValid(j: Int, letters: mutable.Map[Char, Int]): Boolean = {
+      (s.length - 1 to j by -1)
+        .foldLeft((0, true)) { case ((carry, valid), i) =>
+          if (valid) {
+            val x = m.lift(i).filterNot(_.isSpaceChar).map(letters).getOrElse(0)
+            val y = n.lift(i).filterNot(_.isSpaceChar).map(letters).getOrElse(0)
+            val z = x + y + carry
+
+            (z / 10, letters(s(i)) == z % 10)
+          } else (carry, valid)
+        }
+        ._2
+    }
+
+    def solve(i: Int, letters: mutable.Map[Char, Int]): Boolean = {
+      if (i < 0) true
+      else {
+        Seq(m(i), n(i), s(i))
+          .filterNot(ch => ch.isSpaceChar || letters.contains(ch)) match {
+          case Seq() => isValid(i, letters) && solve(i - 1, letters)
+          case xs =>
+            val unassigned = Set(0 to 9: _*).diff(letters.values.toSet)
+            xs.exists { ch =>
+              unassigned.exists { j =>
+                val solved = solve(i, letters += (ch -> j))
+                if (!solved) letters.remove(ch)
+                solved
+              }
+            }
+        }
+      }
+    }
+
+    val soln = mutable.Map.empty[Char, Int]
+    if (solve(s.length - 1, soln)) soln.toMap
+    else Map.empty[Char, Int]
   }
 }

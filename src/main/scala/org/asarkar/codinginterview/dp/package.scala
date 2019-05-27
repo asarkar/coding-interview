@@ -123,6 +123,9 @@ package object dp {
    *
    * Row dp[N - 1] represents the costs of coloring all the houses such that no two neighboring houses are of the same
    * color. We simply need to find the minimum value in this row.
+   *
+   * Time complexity: For each i, we go over K j's, and for each (i, j), we go over K costs. Time complexity: O(NK^2).
+   * Space complexity: O(NK). However, we only need the last row, so we can save space by discarding the rest.
    */
   def minCostOfColoringHouses(costs: IndexedSeq[IndexedSeq[Int]]): Int = {
     val dp = Array.tabulate[Int](costs.size, costs.head.size)((i, j) => costs(i)(j))
@@ -177,12 +180,13 @@ package object dp {
     // dp[i][j] indicates the match status of the pattern prefix with i char, and the text prefix with j char
     val dp = Array.ofDim[Boolean](m + 1, n + 1)
 
-    // initialize for empty text
-    for (row <- 0 to m) {
-      // empty pattern matches empty text
-      dp(row)(0) = (row == 0) ||
-        // pattern prefix ending with * takes on the value of the match with pattern prefix 2 char removed
-        (pattern(row - 1).isWildcard && dp(row - 2)(0))
+    /*
+     * two patterns match empty text:
+     * - empty pattern.
+     * - alternating wildcards (pattern a*b* matches empty text).
+     */
+    for (row <- 0 to m by 2 if row == 0 || pattern(row - 1).isWildcard) {
+      dp(row)(0) = (row == 0) || dp(row - 2)(0)
     }
 
     for (row <- 1 to m; col <- 1 to n) {
@@ -462,5 +466,47 @@ package object dp {
     }
 
     numTrees(1, n)
+  }
+
+  /*
+   * How many ways to decode this message? For example, given encoding a = 1, b = 2, c = 3, ..., z = 26, what does the
+   * encoded string '12' represent? It could be 'ab' or 'l'. For simplicity, assume that the encoded string contains
+   * only digits 0-9. Can you solve this in O(n) time, where n is the length of the encoded string?
+   *
+   * ANSWER: Observe that the number of ways is simply the number of leaves in the recursion tree. If we represent
+   * the number of ways to decode a message of length n to be N(n), observe that N(n) = N(n - 1) + N(n - 2),
+   * where the second term is present only if the first two characters converted to a digit is smaller than the maximum
+   * digit in the encoding. For the given question, the maximum digit is 26 corresponding to the letter 'z'. Similarly,
+   * if the message starts with a digit smaller than the minimum digit in the encoding (1, corresponding to 'a'), there
+   * is no way to decode it.
+   *
+   * To avoid creating new strings, we introduce 'i' as the number of characters to consider from the right. Since the
+   * subproblems are overlapping (notice the recurrence above, it looks very much like Fibonacci), we also memoize the
+   * intermediate results to avoid recalculations.
+   */
+  def numWaysToDecode(msg: String): Int = {
+    // dp(i) is the number of ways to decode the last i char of the message
+    val dp = Array.fill[Int](msg.length + 1)(-1)
+    val (lowest, highest) = (1, 26)
+
+    def loop(i: Int): Int = {
+      if (i == 0) 1
+      else {
+        // start index of the substring we are examining (i.e. msg[j..i))
+        val j = msg.length - i
+
+        if (msg(j).asDigit < lowest) 0
+        else if (dp(i) >= 0) dp(i)
+        else {
+          dp(i) = loop(i - 1) +
+            (if (msg.isDefinedAt(j + 1) && msg.substring(j, j + 2).toInt <= highest) loop(i - 2)
+            else 0)
+
+          dp(i)
+        }
+      }
+    }
+
+    loop(msg.length)
   }
 }

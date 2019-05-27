@@ -51,7 +51,12 @@ class DPSpec extends FlatSpec with TableDrivenPropertyChecks {
       ("ra.", "raymond", false),
       (".*at", "chat", true),
       (".*at", "chats", false),
-      ("xa*b.c", "xaabyc", true)
+      ("xa*b.c", "xaabyc", true),
+      ("a", "aa", false),
+      ("a*", "aa", true),
+      (".*", "ab", true),
+      ("c*a*b*", "aab", true),
+      ("mis*is*p*.", "mississippi", false)
     )
 
     forAll(data) { (`pattern`, text, `match`) =>
@@ -91,5 +96,31 @@ class DPSpec extends FlatSpec with TableDrivenPropertyChecks {
     numUniqBST(3) shouldBe 5
     numUniqBST(4) shouldBe 14
     numUniqBST(1) shouldBe 1
+  }
+
+  it should "find the number of ways to decode the given message" in {
+    val data = Table(
+      ("msg", "n"),
+      ("", 1),
+      ("1", 1),
+      ("12345", 3),
+      ("54321", 2),
+      ("011", 0),
+      ("0", 0),
+      ("10", 1),
+      ("12", 2),
+      ("01", 0),
+      ("226", 3),
+      ("100", 0),
+      ("101", 1),
+      ("230", 0),
+      ("012", 0),
+      ("27", 1),
+      ("301", 0)
+    )
+
+    forAll(data) { (msg, n) =>
+      numWaysToDecode(msg) shouldBe n
+    }
   }
 }

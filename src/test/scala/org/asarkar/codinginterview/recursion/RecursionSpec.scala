@@ -5,22 +5,7 @@ import org.scalatest.Matchers._
 import org.scalatest.prop.TableDrivenPropertyChecks
 
 class RecursionSpec extends FlatSpec with TableDrivenPropertyChecks {
-  "recursion" should "find the number of ways to decode the given message" in {
-    val data = Table(
-      ("msg", "n"),
-      ("", 1),
-      ("1", 1),
-      ("12345", 3),
-      ("54321", 2),
-      ("011", 0)
-    )
-
-    forAll(data) { (msg, n) =>
-      numWaysToDecode(msg) shouldBe n
-    }
-  }
-
-  it should "find the longest absolute path to a file" in {
+  "recursion" should "find the longest absolute path to a file" in {
     val data = Table(
       ("file system", "longest file path length"),
       ("dir\n\tsubdir1\n\tsubdir2\n\t\tfile.ext", 20),
@@ -148,5 +133,25 @@ class RecursionSpec extends FlatSpec with TableDrivenPropertyChecks {
       move should be >= 1
       move should be <= 64
     })
+  }
+
+  it should "compute the minimum and maximum elements in an array using less than 2 * (n - 2) comparisons" in {
+    minMax(IndexedSeq(4, 2, 7, 5, -1, 3, 6)) shouldBe(-1, 7)
+  }
+
+  it should "compute the total number of unlock patterns of length n" in {
+    numUnlockCombinations(1) shouldBe 9
+  }
+
+  it should "return all possible letters the number could represent" in {
+    allPossibleLetters("23", Map(2 -> ('a' to 'c'), 3 -> ('d' to 'f'))) should contain theSameElementsAs Seq(
+      "ad", "ae", "af",
+      "bd", "be", "bf",
+      "cd", "ce", "cf"
+    )
+  }
+
+  it should "solve a cryptarithmetic puzzle" in {
+    println(cryptarithmeticSoln(Seq("SEND", "MORE", "MONEY")))
   }
 }

@@ -41,4 +41,14 @@ class SortingSpec extends FlatSpec {
     numInversions(IndexedSeq(2, 4, 1, 3, 5)) shouldBe 3
     numInversions(IndexedSeq(5, 4, 3, 2, 1)) shouldBe 10
   }
+
+  it should "pancake sort" in {
+    val a = Array(3, 2, 4, 1)
+    pancakeSort(a)
+    a shouldBe sorted
+
+    val b = Array(1, 2, 3)
+    pancakeSort(b)
+    b shouldBe sorted
+  }
 }

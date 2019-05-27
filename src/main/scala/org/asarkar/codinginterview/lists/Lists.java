@@ -1,5 +1,7 @@
 package org.asarkar.codinginterview.lists;
 
+import java.util.Deque;
+
 public class Lists {
     /*
      * Given a singly-linked list, write a method isListPalindrome to determine if the list is a palindrome.
@@ -188,5 +190,95 @@ public class Lists {
             l++;
         }
         return l;
+    }
+
+    /*
+     * Given k sorted singly linked lists, write a function to merge all the lists into one sorted singly linked list.
+     *
+     * ANSWER: Lets assume for the sake of simplicity that all the lists are of length n. If we extend the idea of
+     * merging two sorted lists from merge sort, and recursively merge pairs of lists, we do O(2n) work for the first
+     * pair, O(3n) pair for the second pair, and so on. Since there are k - 1 pairs, the sum is 2n + 3n + ... +
+     * (k - 1)n, or n(1 + 2 + .. + k) - 2n = nk(k + 1)/2 - 2n. This is O(nk^2) time.
+     *
+     * We can improve on this by observing that the quadratic time in k comes from the fact that the size of one of
+     * the lists to be merged grows with each iteration. If we could keep that constant, we would be doing constant
+     * work per iteration. If instead of recursively merging the a list with the result of the previous iteration, we
+     * merge the first list with the second, the third with the fourth, and so on, we do O(2n) work for merging each
+     * pair. Since the size of the problem halves each times, in the first iteration, we do O(2n * k/2) = O(nk) work,
+     * second iteration O(4n * k/4) = O(nk) work, and so on. Overall time complexity is O(nk log(k)).
+     *
+     * The same time complexity can also be achieved by using a min priority queue.
+     */
+    public static Node<Integer> mergeKLists(Node<Integer>[] lists) {
+        if (lists == null || lists.length == 0) {
+            return null;
+        }
+        Deque<Node<Integer>> merged = new java.util.LinkedList<>();
+
+        for (int i = 0; i < lists.length; i += 2) {
+            if (i + 1 >= lists.length) {
+                merged.push(lists[i]);
+            } else {
+                merged.push(merge2Lists(lists[i], lists[i + 1]));
+            }
+        }
+
+        while (merged.size() > 1) {
+            // using push instead of offer would be O(nk^2) time
+            merged.offer(merge2Lists(merged.pop(), merged.pop()));
+        }
+
+        return merged.pop();
+    }
+
+    /*
+     * The basic idea is similar to the merge step in merge sort; we keep a pointer corresponding to each input list;
+     * at each iteration, we advance the pointer corresponding to the smaller element. However, there's one crucial
+     * difference where most people get tripped. In merge sort, since we use a result array, the next position to
+     * insert is always the index of the result array. For a linked list, we need to keep a pointer to the last
+     * element of the sorted list. The pointer may jump around from one input list to another depending on which one
+     * has the smaller element for the current iteration.
+     *
+     * With that, the following code should be self-explanatory. Time complexity: O(m + n). Space complexity: O(1).
+     */
+    public static Node<Integer> merge2Lists(Node<Integer> l1, Node<Integer> l2) {
+        if (l1 == null) {
+            return l2;
+        }
+        if (l2 == null) {
+            return l1;
+        }
+        Node<Integer> first = l1;
+        Node<Integer> second = l2;
+        Node<Integer> head = null;
+        Node<Integer> last = null;
+
+        while (first != null && second != null) {
+            if (first.datum < second.datum) {
+                if (last != null) {
+                    last.next = first;
+                }
+                last = first;
+                first = first.next;
+            } else {
+                if (last != null) {
+                    last.next = second;
+                }
+                last = second;
+                second = second.next;
+            }
+            if (head == null) {
+                head = last;
+            }
+        }
+
+        if (first == null) {
+            last.next = second;
+        }
+        if (second == null) {
+            last.next = first;
+        }
+
+        return head;
     }
 }

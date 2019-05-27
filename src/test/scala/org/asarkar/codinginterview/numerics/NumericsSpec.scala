@@ -32,4 +32,9 @@ class NumericsSpec extends FlatSpec {
     perfectNum(2) shouldBe 28
     perfectNum(11) shouldBe 118
   }
+
+  it should "find the number of times a given integer exists in the multiplication table" in {
+    divisors(6, 12) shouldBe 4
+    divisors(6, 4) shouldBe 3
+  }
 }
