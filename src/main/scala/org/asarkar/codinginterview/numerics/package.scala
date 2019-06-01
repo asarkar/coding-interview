@@ -2,6 +2,8 @@ package org.asarkar.codinginterview
 
 import java.util.concurrent.ThreadLocalRandom
 
+import org.asarkar.codinginterview.stacksnqueues.allPrimes
+
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
 import scala.util.Random
@@ -307,5 +309,55 @@ package object numerics {
       .filter(a => a._1 <= n && a._2 <= n)
       .map(a => if (a._1 == a._2) 1 else 2)
       .sum
+  }
+
+  /*
+   * Given an even number (greater than 2), return two prime numbers whose sum will be equal to the given number.
+   * A solution will always exist. See Goldbach’s conjecture (https://en.wikipedia.org/wiki/Goldbach%27s_conjecture).
+   *
+   * Example:
+   * Input: 4
+   * Output: 2 + 2 = 4
+   *
+   * If there are more than one solution possible, return the lexicographically smaller solution.
+   * If [a, b] is one solution with a <= b, and [c, d] is another solution with c <= d, then
+   * [a, b] < [c, d] if a < c OR a == c AND b < d.
+   *
+   * ANSWER: allPrimes returns the primes in sorted order. Thus, lexicographically smaller solution is a no brainer.
+   */
+  def primeAddends(n: Int): (Int, Int) = {
+    val primes = allPrimes(n)
+
+    val x = primes
+      .dropWhile(i => !primes.contains(n - i))
+      .head
+    (x, n - x)
+  }
+
+  /*
+   * Given a positive integer, check if the number is prime or not.  A prime is a natural number greater than 1 that
+   * has no positive divisors other than 1 and itself.
+   *
+   * ANSWER:
+   * Naive: Iterate through all numbers from 2 to n - 1 and if it divides n, return false.
+   *
+   * Better: Instead of checking till n, we can check till √n because a larger factor of n must be a multiple of
+   * smaller factor that has been already checked (see detailed explanation with Sieve of Eratosthenes).
+   *
+   * Even better: The algorithm can be improved further by observing that all primes are of the form 6k ± 1, with the
+   * exception of 2 and 3. This is because all integers can be expressed as (6k + i) for some integer k and for
+   * i = -1, 0, 1, 2, 3, or 4; 2 divides (6k + 0), (6k + 2), (6k + 4); and 3 divides (6k + 3). So, a more efficient
+   * method is to test if n is divisible by 2 or 3, then to check through all the numbers of the form 6k ± 1 ≤ √n.
+   * This is 3 times as fast as testing all numbers till √n.
+   */
+  def isPrime(n: Int): Boolean = {
+    if (n <= 1) false
+    else if (n <= 3) true
+    else if (n % 2 == 0 || n % 3 == 0) false
+    else {
+      !Iterator.from(5, 6)
+        .takeWhile(i => i * i <= n)
+        .exists(i => n % i == 0 || n % (i + 2) == 0) // 6k ± 1 (5, 7) for k = 1, (11, 13) for k = 2...
+    }
   }
 }

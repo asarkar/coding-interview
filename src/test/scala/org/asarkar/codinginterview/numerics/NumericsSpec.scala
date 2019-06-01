@@ -37,4 +37,15 @@ class NumericsSpec extends FlatSpec {
     divisors(6, 12) shouldBe 4
     divisors(6, 4) shouldBe 3
   }
+
+  it should "check if the number is prime or not" in {
+    isPrime(11) shouldBe true
+    isPrime(15) shouldBe false
+    isPrime(1) shouldBe false
+  }
+
+  it should "return two prime addends" in {
+    primeAddends(74) shouldBe(3, 71)
+    primeAddends(66) shouldBe(5, 61)
+  }
 }

@@ -36,15 +36,15 @@ package object combinatorial {
    * ANSWER: https://stackoverflow.com/a/6443346/839733
    */
   def randomWithExclusion(n: Int, xs: Seq[Int]): Int = {
-    val x = new Random().nextInt(n + 1 - xs.size)
-    xs.sorted
+    val x = new Random().nextInt(n - xs.size)
+    val it = xs.sorted
       .iterator
       .zipWithIndex
       .map { y => (x + y._2, y._1) }
-      .dropWhile(y => y._2 >= y._1)
+      .dropWhile(y => y._1 >= y._2)
       .take(1)
       .map(_._1)
-      .next()
+    if (it.hasNext) it.next() else x + xs.size
   }
 
   /*

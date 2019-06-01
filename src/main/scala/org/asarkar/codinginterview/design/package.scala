@@ -27,4 +27,16 @@ package object design {
    * hash of children by lexicographical ordering of their names for directories.
    * See https://blog.asarkar.org/coding-interview-curated/#hashing for some interesting references on Merkle trees.
    */
+
+  /*
+   * Given a function f, and N return a debounced f of N milliseconds.
+   *
+   * That is, as long as the debounced f continues to be invoked, f itself will not be called for N milliseconds.
+   *
+   * ANSWER: The question isn't clear. Seems like if f hasn't been executed, calling debounce should reset the timer.
+   * What should happen if debounce is called after f has been executed? Also, when debounce is called on the main
+   * thread, should it block, or schedule execution on a separate thread? Is debounce supposed to be thread-safe?
+   *
+   * c.f. https://stackoverflow.com/a/20978973/839733
+   */
 }

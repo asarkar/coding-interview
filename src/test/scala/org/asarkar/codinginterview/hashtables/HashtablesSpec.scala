@@ -34,4 +34,11 @@ class HashtablesSpec extends FlatSpec {
   it should "find the length of the longest consecutive elements sequence" in {
     longestConsecutive(Seq(100, 4, 200, 1, 3, 2)) shouldBe 4
   }
+
+  it should "return how many contiguous elements sum to K" in {
+    subarraySum(Seq(1, 1, 1), 2) shouldBe 2
+    subarraySum(Seq(-1, -1, 1), 0) shouldBe 1
+    subarraySum(Seq(1, 2, 1, 2, 1), 3) shouldBe 4
+    subarraySum(Seq(1), 0) shouldBe 0
+  }
 }

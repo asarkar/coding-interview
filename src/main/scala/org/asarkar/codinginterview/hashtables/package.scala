@@ -130,4 +130,52 @@ package object hashtables {
         .size)
       .max
   }
+
+  /*
+   * Given a list of integers and a number K, return which contiguous elements of the list sum to K.
+   *
+   * For example, if the list is [1, 2, 3, 4, 5] and K is 9, then it should return [2, 3, 4], since 2 + 3 + 4 = 9.
+   *
+   * ANSWER: We slightly modify the given question to match LeetCode; instead of returning the actual subrrays that sum
+   * to K, we return the number of such subarrays.
+   *
+   * One obvious solution is find all subarrays starting at i, for i in [0, n - 1], and check theirs sums. Each
+   * subarray sum is just the current element plus the previous subarray sum, so by keeping a running sum for each i,
+   * we can calculate each sum in O(1) time. Since for each i, we are calculating the sum of each subarray starting at
+   * i, the time complexity is given by the number of subarrays. For i = 0, there are n subarrays, for i = 1, n - 1
+   * subarrays, so on and so forth. Total number of subarrays = ∑(n - i), i in [0, n - 1]. This sum evaluates to
+   * n² - n(n - 1)/2 = (n² + n)/2, which is O(n²) time complexity.
+   *
+   * A cleverer solution makes use of the observation that every subarray can be expressed as the difference of a larger
+   * and a smaller subarray. For example, [2, 3, 4] is the difference of [1, 2, 3, 4] and [1]. Thus, for each subarray
+   * starting at 0 and ending at i, it contains all possible smaller subarrays starting at [0, i] and ending at [0, j],
+   * i <= j < n. If any of the constituent subarrays sum to k, we can express that in terms of the difference of the sum
+   * of the larger subarray, and the sum of a smaller subarray that ends before the start of the constituent subarray.
+   *
+   * For the given example, there are two subarrays that sum to 9; [2, 3, 4] and [4, 5]. Since [2, 3, 4] is suffix of
+   * [1, 2, 3, 4], we check if sum([1, 2, 3, 4]) - sum([?, ?, ..., ?] = k, or sum([1, 2, 3, 4]) - k = sum([?, ?, ..., ?].
+   * We have seen sum([1, 2, 3, 4]) - 9 once before, which is 1, for the subarray ending at i = 0 (subrarray [1]).
+   * Thus, we increment the count by 1.
+   * Since [4, 5] is suffix of [1, 2, 3, 4, 5], we check if we have seen sum([1, 2, 3, 4, 5]) - 9 before, which is 6, and
+   * we have for the subarray ending at i = 2 (subrarray [1, 2, 3]). Thus, we increment the count by 1.
+   * The final count is 2.
+   *
+   * The strategy, therefore, is to maintain a map of sum -> count, where sum is the sum of the subarray starting at 0
+   * and ending at i, and count is the number of times we have seen that sum. As explained above, for each sum, we
+   * check if sum - k exists in the map, and if it does, increment the result by that value.
+   *
+   * Time complexity: O(n), since the sum can be calculated in O(1) time, and we calculate the sum once for each element
+   * of the array.
+   *
+   */
+  def subarraySum(xs: Seq[Int], k: Int): Int = {
+    // (0, 1) is sum of empty array; there's exactly one count of it
+    xs.foldLeft((0, 0, collection.mutable.Map[Int, Int]((0, 1)))) { case ((sum, count, sums), i) =>
+      val x = sum + i
+      val y = count + sums.getOrElse(x - k, 0)
+      sums(x) = sums.getOrElse(x, 0) + 1
+      (x, y, sums)
+    }
+      ._2
+  }
 }

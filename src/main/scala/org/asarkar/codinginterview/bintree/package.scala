@@ -340,4 +340,82 @@ package object bintree {
 
     loop(root, if (root == null) 0 else root.getDatum)._2
   }
+
+  /*
+   * Given a binary tree, return all paths from the root to leaves.
+   * For example, given the tree:
+   *    1
+   * +-----+
+   * 2     3
+   *    +-----+
+   *    4     5
+   *
+   * Return [[1, 2], [1, 3, 4], [1, 3, 5]].
+   */
+  def binaryTreePaths(root: Node[Integer]): Seq[Seq[Integer]] = {
+    def loop(node: Node[Integer], partial: Seq[Integer]): Seq[Seq[Integer]] = {
+      if (node == null) Seq.empty
+      else {
+        val xs = partial :+ node.getDatum
+        if (node.getLeft == null && node.getRight == null) Seq(xs)
+        else loop(node.getLeft, xs) ++ loop(node.getRight, xs)
+      }
+    }
+
+    loop(root, Seq.empty)
+  }
+
+  /*
+   * Given two non-empty binary trees s and t, check whether tree t has exactly the same structure and node values
+   * with a subtree of s. A subtree of s is a tree consists of a node in s and all of this node's descendants.
+   * The tree s could also be considered as a subtree of itself.
+   *
+   * ANSWER: We do pre-order traversal of the trees and check if one path is contained in the other. However,
+   * we need to differentiate between left and right null trees. Why? Consider the following trees:
+   *        3
+   *    +------+
+   *    4      5
+   * +-----+
+   * 1     2
+   *
+   * Pre-order: 3 4 1 2 5
+   *
+   * and
+   *    4
+   * +--+
+   * 1
+   * Pre-order: 4 1
+   *
+   * The latter is not a subtree of the former, but its pre-order path is contained in the former. To prevent this,
+   * we indicate left null as "lnull", and right null as "rnull". Now the pre-order paths are
+   * "3 4 1 lnull rnull 2 lnull rnull 5 lnull rnull" and " 4 1 lnull rnull rnull" respectively, and the latter is not
+   * contained in the former.
+   *
+   * We aren't done yet. Consider the trees s = 12 and t = 2. The pre-order paths are "12" and "2", and gives
+   * a false result that t is a subtree of s. To prevent this, we prepend '#' to the value of every non-null node.
+   * Now the pre-order paths are "#12" and "#2" respectively, and the latter is not contained in the former.
+   *
+   * Time complexity: Assuming appending to StringBuilder takes constant time, pre-order traversal takes linear time.
+   * contains check may take linear time if all characters of larger have to be checked. Thus, overall time complexity:
+   * O(n), where n is the size of the larger tree.
+   */
+  def isSubtree(s: Node[Integer], t: Node[Integer]): Boolean = {
+    def preOrder(node: Node[Integer], sb: StringBuilder): StringBuilder = {
+      sb.append('#').append(node.getDatum)
+
+      if (node.getLeft == null) sb.append("lnull")
+      else preOrder(node.getLeft, sb)
+
+      if (node.getRight == null) sb.append("rnull")
+      else preOrder(node.getRight, sb)
+
+      sb
+    }
+
+    val sb1 = preOrder(s, new StringBuilder())
+    val sb2 = preOrder(t, new StringBuilder())
+    val (smaller, larger) = if (sb1.size < sb2.size) (sb1, sb2) else (sb2, sb1)
+
+    larger.toString().contains(smaller.toString())
+  }
 }

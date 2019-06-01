@@ -298,4 +298,40 @@ class BintreeSpec extends FlatSpec with TableDrivenPropertyChecks {
       maxPathSum(root) shouldBe sum
     }
   }
+
+  it should "return all paths from the root to leaves" in {
+    binaryTreePaths(new Node[Integer](Array[Integer](1, 2, 3, null, 5))) should contain theSameElementsAs Seq(
+      Seq(1, 2, 5), Seq(1, 3)
+    )
+    binaryTreePaths(new Node[Integer](Array[Integer](1, 2, 3, null, null, 4, 5))) should contain theSameElementsAs Seq(
+      Seq(1, 2), Seq(1, 3, 4), Seq(1, 3, 5)
+    )
+  }
+
+  it should "check if one tree is a subtree of another" in {
+    val data = Table(
+      ("s", "t", "subtree"),
+      (new Node[Integer](Array[Integer](3, 4, 5, 1, 2)), new Node[Integer](Array[Integer](4, 1, 2)), true),
+      (new Node[Integer](Array[Integer](1, 1)), new Node[Integer](Array[Integer](1)), true),
+      (
+        new Node[Integer](Array[Integer](-9, null, 3, 2, 8, -1, null, 7, null, -4, 0, 6, null, -5)),
+        new Node[Integer](Array[Integer](-1, 1515, 0, -5)), false
+      ),
+      (
+        new Node[Integer](Array[Integer](3, 4, 5, 1, 2, null, null, 0)),
+        new Node[Integer](Array[Integer](4, 1, 2)),
+        false
+      ),
+      (
+        new Node[Integer](Array[Integer](3, 4, 5, 1, 2)),
+        new Node[Integer](Array[Integer](4, 1)),
+        false
+      ),
+      (new Node[Integer](Array[Integer](12)), new Node[Integer](Array[Integer](2)), false)
+    )
+
+    forAll(data) { (s, t, subtree) =>
+      isSubtree(s, t) shouldBe subtree
+    }
+  }
 }

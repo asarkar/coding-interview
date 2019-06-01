@@ -771,4 +771,87 @@ package object strings {
       .keys
       .toSeq
   }
+
+  /*
+   * Given a string S and a string T, find the minimum window in S which will contain all the characters in T in
+   * complexity O(n).
+   *
+   * Example:
+   * Input: S = "ADOBECODEBANC", T = "ABC"
+   * Output: "BANC"
+   *
+   * Note:
+   * If there is no such window in S that covers all characters in T, return the empty string "".
+   * If there is such window, you are guaranteed that there will always be only one unique minimum window in S.
+   *
+   * ANSWER: We start a sliding window, and keep track of whether the window contains all chars from "t".
+   * Note than "t" may have duplicates, and all chars, including dupes, must be present in the min window. For example,
+   * if s = "aabc", and t = s, the min window string is "aabc", not "abc".
+   *
+   * To determine if the current window is a potential solution, we keep a char freq map of "t" as reference. We
+   * maintain another freq map for the current window for the chars present in "t". At each iteration, we try to
+   * extend the window to the right by one char only if the incoming char is present in "t". If successful,
+   * we try to shrink the window from the left as long as it doesn't invalidate the current solution.
+   *
+   * For example, let s = "aabc", t = "abc". We start with the window = "a", which is not a solution. Since the next
+   * char 'a' is present in "t", we take it in, and the next char 'b', and the next char 'c'; the window is now "aabc".
+   * This is a solution, but not the min one. We then try to shrink the window without invalidating the solution,
+   * and we can drop 'a' from the left.
+   *
+   * To avoid comparing the frequency maps, we keep a variable count that is incremented once for each char from
+   * "t" when we have seen the char as many times as present in "t". For example, t = "aabc", count would be
+   * incremented when we have seen two counts of 'a', one count of 'b', and one count of 'c'. When count is equal to
+   * the size of the reference frequency map, we have a candidate solution. We then check if the current window is
+   * smaller than the current min window, and if yes, update the boundaries.
+   *
+   * Time complexity: O(n). The for loop runs n times. Although it may look like the nested while loop adds to the time
+   * complexity, it only runs n times, because start is incremented inside it, and start can only be less than n.
+   */
+  def minWindow(s: String, t: String): String = {
+    val m = t.length
+
+    if (s.length < m) ""
+    else {
+      val ref = t
+        .groupBy(identity)
+        .mapValues(_.length)
+
+      val freq = mutable.Map.empty[Char, Int]
+      var count = 0
+      var found = false
+      var start = 0
+      var (minStart, minEnd, min) = (-1, -1, Int.MaxValue)
+
+      for {
+        end <- s.indices
+        incoming = s(end)
+        if ref.contains(incoming)
+      } {
+        freq(incoming) = freq.getOrElse(incoming, 0) + 1
+        if (freq.get(incoming) == ref.get(incoming)) count += 1
+
+
+        while (end - start + 1 > m && (!freq.contains(s(start)) || freq(s(start)) > ref(s(start)))) {
+          if (freq.contains(s(start))) freq(s(start)) = freq(s(start)) - 1
+          start += 1
+        }
+
+        if (((freq.size == ref.size) && (count == ref.size)) && (end - start + 1) < min) {
+          found = true
+          minStart = start
+          minEnd = end
+          min = minEnd - minStart + 1
+        }
+      }
+      if (found) s.slice(minStart, minEnd + 1) else ""
+    }
+  }
+
+  /*
+   * Given two strings A and B, return whether or not A can be shifted some number of times to get B.
+   *
+   * For example, if A is abcde and B is cdeab, return true. If A is abc and B is acb, return false.
+   *
+   * ANSWER: A + A contains B. Time complexity: O(n).
+   */
 }

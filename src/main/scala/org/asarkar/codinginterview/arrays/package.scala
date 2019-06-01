@@ -795,4 +795,26 @@ Hence in all cases the number of squares touched is
     val k = loop(-1, 0)
     xs.isDefinedAt(k) && (k <= 0 || k == xs.size - 2 || xs(k - 1) <= xs(k + 1) || xs(k) <= xs(k + 2))
   }
+
+  /*
+   * Given an integer list where each number represents the number of hops you can make, determine whether you can
+   * reach to the last index starting at index 0.
+   *
+   * For example, [2, 0, 1, 0] returns True while [1, 1, 0, 1] returns False.
+   *
+   * ANSWER: We adapt a greedy strategy such that we jump to the position that takes us closest to the end. In other
+   * words, we jump to the position from where we can jump the farthest.
+   * Time complexity: O(n).
+   */
+  def canJump(xs: Seq[Int]): Boolean = {
+    Iterator.iterate((0, false)) { case (curr, stuck) =>
+      if (xs(curr) == 0) (curr, true)
+      else (curr + (1 to xs(curr))
+        .maxBy(hop => curr + hop + xs.lift(curr + hop).getOrElse(xs.size)), stuck)
+    }
+      .dropWhile(x => x._1 < xs.size - 1 && !x._2)
+      .take(1)
+      .map(_._1)
+      .next() >= xs.size - 1
+  }
 }

@@ -22,4 +22,21 @@ class StacksNQueuesSpec extends FlatSpec with TableDrivenPropertyChecks {
     numParenthesesToRemove("()())()") shouldBe 1
     numParenthesesToRemove(")(") shouldBe 2
   }
+
+  it should "generate all primes smaller than n " in {
+    allPrimes(10) should contain theSameElementsAs Seq(2, 3, 5, 7)
+    allPrimes(20) should contain theSameElementsAs Seq(2, 3, 5, 7, 11, 13, 17, 19)
+  }
+
+  it should "reverse a string word by word" in {
+    reverseWords("the sky is blue") shouldBe "blue is sky the"
+    reverseWords("  hello world!  ") shouldBe "world! hello"
+    reverseWords("a good   example") shouldBe "example good a"
+  }
+
+  it should "reverse the words in the string while maintaining the relative order of the delimiters" in {
+    reverseWords("hello/world:here", Set('/', ':')) shouldBe "here/world:hello"
+    reverseWords("hello/world:here/", Set('/', ':')) shouldBe "here/world:hello/"
+    reverseWords("hello//world:here", Set('/', ':')) shouldBe "here//world:hello"
+  }
 }

@@ -130,4 +130,22 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
   it should "determine the winning letters" in {
     winningLettersForGhost(Seq("cat", "calf", "dog", "bear")) should contain theSameElementsAs Set('b')
   }
+
+  it should "find the minimum window" in {
+    val data = Table(
+      ("s", "t", "min"),
+      ("ADOBECODEBANC", "ABC", "BANC"),
+      ("aaaaaaaaaaaabbbbbcdd", "abcdd", "abbbbbcdd"),
+      ("cabwefgewcwaefgcf", "cae", "cwae"),
+      ("ab", "A", ""),
+      ("ab", "a", "a"),
+      ("a", "aa", ""),
+      ("aa", "aa", "aa"),
+      ("acbbaca", "aba", "baca")
+    )
+
+    forAll(data) { (s, t, min) =>
+      minWindow(s, t) shouldBe min
+    }
+  }
 }

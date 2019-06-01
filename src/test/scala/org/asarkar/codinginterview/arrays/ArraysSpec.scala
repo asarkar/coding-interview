@@ -209,4 +209,13 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
     checkPossibility(IndexedSeq(3, 4, 2, 3)) shouldBe false
     checkPossibility(IndexedSeq(-1, 4, 2, 3)) shouldBe true
   }
+
+  it should "determine if it's possible to reach the last index" in {
+    canJump(Seq(2, 0, 1, 0)) shouldBe true
+    canJump(Seq(1, 1, 0, 1)) shouldBe false
+    canJump(Seq(2, 3, 1, 1, 4)) shouldBe true
+    canJump(Seq(3, 2, 1, 0, 4)) shouldBe false
+    canJump(Seq.empty) shouldBe true
+    canJump(Seq(1)) shouldBe true
+  }
 }

@@ -34,7 +34,7 @@ class ListsSpec extends FlatSpec with TableDrivenPropertyChecks {
       (Seq[Integer](1, 2, 3).asJava, false),
       (Seq[Integer](1, 1).asJava, true),
       (Seq[Integer](1).asJava, true),
-      (Seq.empty[Integer].asJava, false),
+      (Seq.empty[Integer].asJava, true),
       (Seq[Integer](2, 1, 1, 1, 1).asJava, false),
       (Seq[Integer](1, 1, 1, 1).asJava, true),
       (Seq[Integer](3, 2, 0, 1, 2, 3).asJava, false),
@@ -45,7 +45,7 @@ class ListsSpec extends FlatSpec with TableDrivenPropertyChecks {
     forAll(data) { (xs, palindrome) =>
       Lists.isPalindrome(new Node[Integer](xs)) shouldBe palindrome
     }
-    Lists.isPalindrome(null) shouldBe false
+    Lists.isPalindrome(null) shouldBe true
   }
 
   it should "add two lists representing integers" in {

@@ -13,8 +13,8 @@ public class Lists {
      * Time complexity: O(n).
      */
     public static <T> boolean isPalindrome(Node<T> head) {
-        if (head == null || head.datum == null) {
-            return false;
+        if (head == null) {
+            return true;
         }
         Node<T> fast = head;
         Node<T> slow = head;
@@ -41,13 +41,12 @@ public class Lists {
         cur = head;
         next = prev;
 
-        while (cur != next && next != null) {
-            if (cur.datum == next.datum) {
-                cur = cur.next;
-                next = next.next;
-            } else {
+        while (next != null) {
+            if (cur.datum != next.datum) {
                 return false;
             }
+            cur = cur.next;
+            next = next.next;
         }
         return true;
     }
