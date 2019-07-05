@@ -218,4 +218,13 @@ class ArraysSpec extends FlatSpec with TableDrivenPropertyChecks {
     canJump(Seq.empty) shouldBe true
     canJump(Seq(1)) shouldBe true
   }
+
+  it should "square the elements and give the output in sorted order" in {
+    sortedSquares(Seq(-1, 2, 2)) should contain theSameElementsInOrderAs Seq(1, 4, 4)
+    sortedSquares(Seq(-3, -2, -1)) should contain theSameElementsInOrderAs Seq(1, 4, 9)
+    sortedSquares(Seq(-4, -1, 0, 3, 10)) should contain theSameElementsInOrderAs Seq(0, 1, 9, 16, 100)
+    sortedSquares(Seq(-7, -3, 2, 3, 11)) should contain theSameElementsInOrderAs Seq(4, 9, 9, 49, 121)
+    sortedSquares(Seq.empty[Int]) shouldBe empty
+    sortedSquares(Seq(1)) should contain theSameElementsAs Seq(1)
+  }
 }

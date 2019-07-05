@@ -48,4 +48,10 @@ class NumericsSpec extends FlatSpec {
     primeAddends(74) shouldBe(3, 71)
     primeAddends(66) shouldBe(5, 61)
   }
+
+  it should "return the number of rounds" in {
+    numRound(1) shouldBe 0
+    numRound(7) shouldBe 3
+    numRound(8) shouldBe 3
+  }
 }

@@ -51,4 +51,9 @@ class SortingSpec extends FlatSpec {
     pancakeSort(b)
     b shouldBe sorted
   }
+
+  it should "find the smallest set of numbers that covers all the intervals" in {
+    smallestCover(Seq((0, 4), (1, 2), (5, 7), (6, 7), (6, 9), (8, 10))) should contain theSameElementsInOrderAs Seq(2, 7, 10)
+    smallestCover(Seq((0, 3), (2, 6), (3, 4), (6, 10))) should contain theSameElementsInOrderAs Seq(3, 10)
+  }
 }

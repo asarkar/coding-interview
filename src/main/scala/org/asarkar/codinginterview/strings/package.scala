@@ -854,4 +854,88 @@ package object strings {
    *
    * ANSWER: A + A contains B. Time complexity: O(n).
    */
+
+  /*
+   * Given a non-empty string s, you may delete at most one character. Judge whether you can make it a palindrome.
+   *
+   * Example 1:
+   * Input: "aba"
+   * Output: True
+   *
+   * Input: "abca"
+   * Output: True
+   * Explanation: You could delete the character 'c'.
+   *
+   * ANSWER: We examine the characters both from ends. When we find a non-matching pair, either character could be
+   * deleted to form a palindrome. We check both possibilities.
+   *
+   * Time complexity: O(n), where n is the length of the string.
+   */
+  def validPalindrome(s: String): Boolean = {
+    def indexOfNoMatch(start: Int, end: Int): Int = {
+      val mid = (end - start) / 2
+      Iterator.from(0)
+        .takeWhile(_ <= mid)
+        .find(i => (start + i < end - i) && s(start + i) != s(end - i))
+        .getOrElse(-1)
+    }
+
+    val x = indexOfNoMatch(0, s.length - 1)
+    x == -1 || (indexOfNoMatch(x + 1, s.length - 1 - x) == -1) || (indexOfNoMatch(x, s.length - 2 - x) == -1)
+  }
+
+  /*
+   * Given a string, return whether it represents a number. Here are the different kinds of numbers:
+   * "10", a positive integer
+   * "-10", a negative integer
+   * "10.1", a positive real number
+   * "-10.1", a negative real number
+   * "1e5", a number in scientific notation
+   *
+   * And here are examples of non-numbers:
+   * "a"
+   * "x 1"
+   * "a -2"
+   * "-"
+   *
+   * ANSWER: The fastest solution would be using a NFA (regex), but the one below is far simpler. The main challenge
+   * is to come up with the requirements for what is considered valid. The following implementation is based on the
+   * test cases for LeetCode #65.
+   * Time complexity is O(n), although we may traverse the string few times.
+   */
+  def isValidNumber(str: String): Boolean = {
+    // xey means x * 10^y
+    def isValidScientific(s: String): Boolean = {
+      val tokens = s.split("e", 2)
+      // doesn't contain 'e'
+      if (tokens.length == 1) isValidFloat(s)
+      // can't start or end with an 'e'
+      else if (tokens(0).isEmpty || tokens(1).isEmpty) false
+      // segment after 'e' must be an integer
+      else isValidFloat(tokens(0)) && isValidInt(tokens(1))
+    }
+
+    def isValidUnsignedFloat(s: String): Boolean = {
+      // ok to start or end with a '.'
+      s.split("\\.", 2)
+        .filter(_.nonEmpty) match {
+        case xs if xs.nonEmpty => xs.forall(isValidUnsignedInt)
+        // can't be only '.'
+        case _ => false
+      }
+    }
+
+    def isValidFloat(s: String): Boolean = {
+      // can't use dropWhile because s may start with more than one sign
+      if (s.startsWith("+") || s.startsWith("-")) isValidUnsignedFloat(s.drop(1))
+      else isValidUnsignedFloat(s)
+    }
+
+    def isValidUnsignedInt(s: String) = s.matches("\\d+")
+
+    def isValidInt(s: String) = s.matches("[+-]?\\d+")
+
+    val trimmed = str.trim
+    trimmed.nonEmpty && isValidScientific(trimmed)
+  }
 }

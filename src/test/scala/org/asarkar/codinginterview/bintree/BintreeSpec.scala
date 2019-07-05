@@ -334,4 +334,16 @@ class BintreeSpec extends FlatSpec with TableDrivenPropertyChecks {
       isSubtree(s, t) shouldBe subtree
     }
   }
+
+  it should "return the level with minimum sum" in {
+    val root = new Node[Integer](Array[Integer](55, 50, -10, -25, 25, 1, -1, null, null, null, null, 10, 35))
+    levelwithMinSum(root) shouldBe 2
+  }
+
+  it should "find if there exist two nodes whose sum equals k" in {
+    twoSum(new Node[Integer](Array[Integer](10, 5, null, null, 15, 11, 15)), 20) shouldBe true
+    twoSum(new Node[Integer](Array[Integer](5, 3, 6, 2, 4, 7)), 9) shouldBe true
+    twoSum(new Node[Integer](Array[Integer](5, 3, 6, 2, 4, 7)), 28) shouldBe false
+    twoSum(new Node[Integer](Array[Integer](2, 1, 3)), 4) shouldBe true
+  }
 }

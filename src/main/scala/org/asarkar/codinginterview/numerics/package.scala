@@ -360,4 +360,19 @@ package object numerics {
         .exists(i => n % i == 0 || n % (i + 2) == 0) // 6k ± 1 (5, 7) for k = 1, (11, 13) for k = 2...
     }
   }
+
+  /*
+   * You have n fair coins and you flip them all at the same time. Any that come up tails you set aside. The ones that
+   * come up heads you flip again. How many rounds do you expect to play before only one coin remains?
+   *
+   * Write a function that, given n, returns the number of rounds you'd expect to play until one coin remains.
+   *
+   * ANSWER: At each round, the number of coins is halved. If the number of coins n is odd, we consider ⌈x/2⌉ coins
+   * remain.
+   * For example, n = 7.
+   * Round 1: 4 coins
+   * Round 2: 2 coins
+   * Round 3: 1 coin
+  */
+  def numRound(n: Int): Int = math.ceil(math.log(n) / math.log(2)).toInt
 }

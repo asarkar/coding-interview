@@ -123,4 +123,19 @@ class DPSpec extends FlatSpec with TableDrivenPropertyChecks {
       numWaysToDecode(msg) shouldBe n
     }
   }
+
+  it should "determine if a string is k-palindrome" in {
+    kPalindrome("abcdecba", 1) shouldBe true
+    kPalindrome("abcdeca", 2) shouldBe true
+    kPalindrome("acdcb", 1) shouldBe false
+    kPalindrome("waterrfetawx", 2) shouldBe true
+  }
+
+  it should "find the maximum number of coins" in {
+    maxCoins(Seq(
+      Seq(0, 3, 1, 1),
+      Seq(2, 0, 0, 4),
+      Seq(1, 5, 3, 1)
+    )) shouldBe 12
+  }
 }

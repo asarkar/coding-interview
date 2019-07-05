@@ -817,4 +817,32 @@ Hence in all cases the number of squares touched is
       .map(_._1)
       .next() >= xs.size - 1
   }
+
+  /*
+   * Given a sorted list of integers, square the elements and give the output in sorted order.
+   * For example, given [-9, -2, 0, 2, 3], return [0, 4, 4, 9, 81].
+   *
+   * ANSWER: We find the index of the first positive number (if any), and then start comparing pairs while moving
+   * in opposite directions.
+   *
+   * Time complexity: O(n). In the worst case, all numbers are negative.
+   */
+  def sortedSquares(xs: Seq[Int]): Seq[Int] = {
+    val i = xs.indices
+      .find(xs(_) > 0)
+      .getOrElse(xs.size)
+
+    Iterator.iterate(i - 1, i, ListBuffer.empty[Int]) { case (j, k, squares) =>
+      if (xs.isDefinedAt(j) && xs.isDefinedAt(k)) {
+        if (math.abs(xs(j)) < math.abs(xs(k))) (j - 1, k, squares += (xs(j) * xs(j)))
+        else (j, k + 1, squares += (xs(k) * xs(k)))
+      } else if (xs.isDefinedAt(j)) (j - 1, k, squares += (xs(j) * xs(j)))
+      else if (xs.isDefinedAt(k)) (j, k + 1, squares += (xs(k) * xs(k)))
+      else (j, k, squares)
+    }
+      .dropWhile(_._3.size < xs.size)
+      .take(1)
+      .map(_._3)
+      .next()
+  }
 }

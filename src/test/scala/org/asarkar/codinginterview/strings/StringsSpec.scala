@@ -148,4 +148,46 @@ class StringsSpec extends FlatSpec with TableDrivenPropertyChecks {
       minWindow(s, t) shouldBe min
     }
   }
+
+  it should "determine if a string can be made palindrome by deleting one char" in {
+    validPalindrome("aba") shouldBe true
+    validPalindrome("abca") shouldBe true
+    validPalindrome("aguokepatgbnvfqmgmlcupuufxoohdfpgjdmysgvhmvffcnqxjjxqncffvmhvgsymdjgpfdhooxfuupuculmgmqfvnbgtapekouga") shouldBe true
+  }
+
+  it should "check whether a given string represents a number" in {
+    val data = Table(
+      ("s", "valid"),
+      (".-1", false),
+      ("e9", false),
+      ("0", true),
+      ("3.", true),
+      ("2e0", true),
+      ("0.8", true),
+      ("-1.", true),
+      ("0..", false),
+      ("6e6.5.", false),
+      ("6e+6", true),
+      ("10", true),
+      ("-10", true),
+      ("10.1", true),
+      ("-10.1", true),
+      ("1e5", true),
+      ("a", false),
+      ("x 1", false),
+      ("x 1", false),
+      ("a -2", false),
+      ("-", false),
+      (" -90e3   ", true),
+      ("1e", false),
+      ("53.5e93", true),
+      ("--6", false),
+      ("+-3", false),
+      ("95a54e53", false)
+    )
+
+    forAll(data) { (s, valid) =>
+      isValidNumber(s) shouldBe valid
+    }
+  }
 }

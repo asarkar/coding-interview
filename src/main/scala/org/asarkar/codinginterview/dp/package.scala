@@ -509,4 +509,73 @@ package object dp {
 
     loop(msg.length)
   }
+
+  /*
+   * Given a string which we can delete at most k, return whether you can make a palindrome.
+   * For example, given 'waterrfetawx' and a k of 2, you could delete f and x to get 'waterretaw'.
+   *
+   * ANSWER: This is a special case of the edit distance problem, where we check if a string s can be converted to a
+   * string p by only deleting characters from either or both strings.
+   *
+   * This problem exhibits optimal substructure (if a string is a k-palindrome, some substrings are also k-palindromes),
+   * and overlapping subproblems (the solution requires comparing the same substrings more than once).
+   *
+   * Let the string be s and its reverse rev. Let dp[i][j] be the number of deletions required to convert the first i
+   * characters of s to the first j characters of rev. Since deletions have to be done in both strings,
+   * if dp[n][n] <= 2 * k, then the string is a k-palindrome.
+   *
+   * Base case: When one of the strings is empty, all characters from the other string need to be deleted in order
+   * to make them equal.
+   *
+   * Time complexity: O(n^2).
+   *
+   * Since we are doing bottom-up DP, an optimization is to return false if at any time i == j && dp[i][j] > 2 * k,
+   * since all subsequent i == j must be greater.
+   */
+  def kPalindrome(s: String, k: Int): Boolean = {
+    val rev = s.reverse
+    val n = s.length
+    val dp = Array.ofDim[Int](n + 1, n + 1)
+
+    for (i <- 0 to n; j <- 0 to n) {
+      dp(i)(j) = if (i == 0 || j == 0) i + j
+      else if (s(i - 1) == rev(j - 1)) dp(i - 1)(j - 1)
+      else 1 + math.min(dp(i - 1)(j), dp(i)(j - 1))
+    }
+    dp(n)(n) <= 2 * k
+  }
+
+  /*
+   * You are given a 2-d matrix where each cell represents number of coins in that cell. Assuming we start at
+   * matrix[0][0], and can only move right or down, find the maximum number of coins you can collect by the bottom
+   * right corner.
+   *
+   * For example, in this matrix
+   * 0 3 1 1
+   * 2 0 0 4
+   * 1 5 3 1
+   *
+   * The most we can collect is 0 + 2 + 1 + 5 + 3 + 1 = 12 coins.
+   *
+   * ANSWER: Top-down DP.
+   */
+  def maxCoins(matrix: Seq[Seq[Int]]): Int = {
+    def neighbors(row: Int, col: Int): Set[(Int, Int)] = {
+      Set((row, col - 1), (row - 1, col))
+        .filter(x => matrix.isDefinedAt(x._1) && matrix(x._1).isDefinedAt(x._2))
+    }
+
+    val dp = Array.tabulate[Int](matrix.size, matrix.last.size)((row, col) => if (row == 0 && col == 0) 0 else -1)
+
+    def loop(row: Int, col: Int): Int = {
+      if (dp(row)(col) < 0) {
+        dp(row)(col) = matrix(row)(col) + neighbors(row, col).foldLeft(0) { case (acc, (r, c)) =>
+          math.max(acc, loop(r, c))
+        }
+      }
+      dp(row)(col)
+    }
+
+    loop(matrix.size - 1, matrix.last.size - 1)
+  }
 }

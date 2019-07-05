@@ -418,4 +418,51 @@ package object bintree {
 
     larger.toString().contains(smaller.toString())
   }
+
+  /*
+   * Given a binary tree, return the level of the tree with minimum sum.
+   * Example: See level-with-min-sum.png
+   *
+   * ANSWER: We maintain a running sum for a level, and a queue to keep track of the yet unprocessed nodes. At each
+   * iteration, we pop a node from the queue, and add its children (if any) to the queue. When the top node in the
+   * queue has a level greater than the one popped, we have processed all nodes in the current level. We then compare
+   * the running sum with the minimum sum, and return the level corresponding to the smaller value.
+   *
+   * Time complexity: O(n).
+   */
+  def levelwithMinSum(root: Node[Integer]): Int = {
+    val queue = ListBuffer((root, 0))
+    Iterator.iterate((0, Int.MaxValue, 0)) { case (sum, min, minLevel) =>
+      if (queue.isEmpty) (sum, min, minLevel)
+      else {
+        val (node, level) = queue.remove(0)
+        if (node.getLeft != null) queue.append((node.getLeft, level + 1))
+        if (node.getRight != null) queue.append((node.getRight, level + 1))
+
+        if (queue.headOption.map(_._2).getOrElse(-1) > level) {
+          if (sum + node.getDatum < min) (0, sum + node.getDatum, level)
+          else (0, min, minLevel)
+        } else (sum + node.getDatum, min, minLevel)
+      }
+    }
+      .dropWhile(_ => queue.nonEmpty)
+      .take(1)
+      .map(_._3)
+      .next()
+  }
+
+  /*
+   * Given a Binary Search Tree and a target number, return true if there exist two elements in the BST such that their
+   * sum is equal to the given target.
+   */
+  def twoSum(root: Node[Integer], k: Int): Boolean = {
+    def loop(node: Node[Integer], values: collection.mutable.Set[Int]): Boolean = {
+      if (node == null) false
+      else values.contains(k - node.getDatum) ||
+        loop(node.getLeft, values += node.getDatum) ||
+        loop(node.getRight, values)
+    }
+
+    loop(root, collection.mutable.Set.empty[Int])
+  }
 }

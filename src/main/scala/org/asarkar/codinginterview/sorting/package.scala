@@ -1,6 +1,7 @@
 package org.asarkar.codinginterview
 
 import scala.annotation.tailrec
+import scala.collection.mutable.ListBuffer
 
 package object sorting {
   /*
@@ -233,5 +234,30 @@ package object sorting {
     }
 
     sort(a.length - 1)
+  }
+
+  /*
+   * Given a set of closed intervals, find the smallest set of numbers that covers all the intervals. If there are
+   * multiple smallest sets, return any of them.
+   * For example, given the intervals [0, 3], [2, 6], [3, 4], [6, 9], one set of numbers that covers all these
+   * intervals is {3, 6}.
+   *
+   * ANSWER: See smallest-cover.png for a visual description of the problem.
+   *
+   * We sort the intervals by the end numbers. For any interval, if its start is not greater than the previous end
+   * (end is not smaller than the previous end since the intervals have been sorted), then we have an overlap at the
+   * previous end, and skip this interval. If the start of the current interval is greater than the previous end,
+   * we have no overlap, and add the current end to the result set. We also update previous to the current end.
+   *
+   * Time complexity: n log(n), where n is the number of intervals.
+   */
+  def smallestCover(xs: Seq[(Int, Int)]): Seq[Int] = {
+    xs
+      .sortBy(_._2)
+      .foldLeft(ListBuffer.empty[Int]) { case (buffer, (start, end)) =>
+        val prev = buffer.lastOption.getOrElse(Int.MinValue)
+        if (start <= prev) buffer
+        else buffer += end
+      }
   }
 }
